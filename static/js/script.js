@@ -96,21 +96,31 @@
     }
 
     function processSearchResults(data) {
-        if (!data.results || data.results.length === 0) {
-            return '<p>没有找到相关资源</p>';
-        }
-        return data.results.map(item => `
+    if (!data.results || data.results.length === 0) {
+        return '<p>没有找到相关资源</p>';
+    }
+    return data.results.map(item => {
+        let 网盘名称 = '未知网盘';
+        if (item.url.includes('pan.baidu.com')) {
+            网盘名称 = '百度网盘';
+        } else if (item.url.includes('aliyundrive.com')) {
+            网盘名称 = '阿里网盘';
+        } 
+        // 可以继续添加其他主流网盘的判断条件
+
+        return `
             <div class="result-item">
                 <div class="result-title">${item.title} 
-                    <small>来自 ${item.source}</small>
+                    <button class="网盘按钮">${网盘名称}</button>
                 </div>
                 <div class="link-box">
                     <input type="text" value="${item.url}" readonly>
                     <button onclick="copyLink(this)">复制</button>
                 </div>
             </div>
-        `).join('');
-    }
+        `;
+    }).join('');
+}
 
     function scrollToBottom() {
         if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
