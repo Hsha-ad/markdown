@@ -1,4 +1,3 @@
-# pan/crawlers/ysxjjkl.py
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -26,7 +25,11 @@ def search_ysxjjkl(keyword):
         # 以下是您原有的解析逻辑，完全不变
         for item in soup.select('.resource-item, .search-result'):
             try:
+                # 优先获取data-title属性，其次获取标题元素文本
                 title = item.get('data-title') or item.select_one('.title, h3').get_text(strip=True)
+                # 清理标题中的多余空格和特殊字符
+                title = re.sub(r'\s+', ' ', title).strip()
+                
                 link = item.find('a', href=lambda x: x and ('pan.baidu.com' in x or 'aliyundrive.com' in x))
                 if not link:
                     continue
@@ -41,7 +44,7 @@ def search_ysxjjkl(keyword):
                         pwd = re.search(r'[a-zA-Z0-9]{4}', pwd_text.get_text()).group()
                 
                 result = {
-                    'title': title[:100],
+                    'title': title[:100],  # 保留完整文件名
                     'url': link['href'],
                     'source': '影视集结号',
                     'valid': bool(pwd)
@@ -59,8 +62,12 @@ def search_ysxjjkl(keyword):
         if not results:
             print("[警告] 主解析方案无结果，尝试备用方案", file=sys.stderr)
             for a in soup.find_all('a', href=re.compile(r'pan\.baidu\.com/s/[^\s]+')):
+                # 从链接文本中提取更详细的文件名
+                link_text = a.get_text(strip=True)
+                title = link_text if link_text and len(link_text) > 5 else "百度网盘资源"
+                
                 results.append({
-                    'title': a.get_text(strip=True) or "百度网盘资源",
+                    'title': title,  # 使用实际文件名
                     'url': a['href'],
                     'source': 'ysxjjkl',
                     'valid': 'pwd=' in a['href']
