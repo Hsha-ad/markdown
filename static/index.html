@@ -290,43 +290,53 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
         
-        // 渲染分页结果
-        function renderPaginatedResults() {
-            const start = (currentResultsPage - 1) * resultsPerPage;
-            const end = start + resultsPerPage;
-            const pageResults = currentResultsData.slice(start, end);
-            const totalPages = Math.ceil(currentResultsData.length / resultsPerPage);
-            
-            // 渲染结果列表
-            const resultsHtml = pageResults.map(item => `
+            // 渲染分页结果
+    function renderPaginatedResults() {
+        const start = (currentResultsPage - 1) * resultsPerPage;
+        const end = start + resultsPerPage;
+        const pageResults = currentResultsData.slice(start, end);
+        const totalPages = Math.ceil(currentResultsData.length / resultsPerPage);
+
+        // 渲染结果列表
+        const resultsHtml = pageResults.map(item => {
+            let网盘名称 = '未知网盘';
+            if (item.url.includes('pan.baidu.com')) {
+                网盘名称 = '百度网盘';
+            } else if (item.url.includes('aliyundrive.com')) {
+                网盘名称 = '阿里网盘';
+            } 
+            // 可以继续添加其他主流网盘的判断条件
+
+            return `
                 <div class="result-item">
                     <div class="result-title">${item.title || '未命名资源'} 
-                        <small style="color: #888;">来自 ${item.source || '未知来源'}</small>
+                        <button class="网盘按钮">${网盘名称}</button>
                     </div>
                     <div class="link-box">
                         <input type="text" value="${item.url}" readonly>
                         <button onclick="copyLink(this)">复制</button>
                     </div>
                 </div>
-            `).join('');
-            
-            // 添加分页控制
-            const paginationHtml = `
-                <div class="pagination-controls">
-                    <button class="pagination-btn" onclick="changeResultsPage(-1)" ${currentResultsPage <= 1 ? 'disabled' : ''}>
-                        上一页
-                    </button>
-                    <button class="pagination-btn" onclick="changeResultsPage(1)" ${end >= currentResultsData.length ? 'disabled' : ''}>
-                        下一页
-                    </button>
-                </div>
-                <div class="pagination-info">
-                    第 ${currentResultsPage}/${totalPages} 页 (共 ${currentResultsData.length} 条结果)
-                </div>
             `;
-            
-            return resultsHtml + paginationHtml;
-        }
+        }).join('');
+
+        // 添加分页控制
+        const paginationHtml = `
+            <div class="pagination-controls">
+                <button class="pagination-btn" onclick="changeResultsPage(-1)" ${currentResultsPage <= 1 ? 'disabled' : ''}>
+                    上一页
+                </button>
+                <button class="pagination-btn" onclick="changeResultsPage(1)" ${end >= currentResultsData.length ? 'disabled' : ''}>
+                    下一页
+                </button>
+            </div>
+            <div class="pagination-info">
+                第 ${currentResultsPage}/${totalPages} 页 (共 ${currentResultsData.length} 条结果)
+            </div>
+        `;
+
+        return resultsHtml + paginationHtml;
+    }
         
         // 处理搜索结果
         function processSearchResults(data) {
