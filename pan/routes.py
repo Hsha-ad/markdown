@@ -1,18 +1,30 @@
-# pan/routes.py
-from flask import request, jsonify
-from .services import search_pan_resources
+# pan/routes.py 修改版
+from flask import Blueprint, request, jsonify
+from .services import SearchService
 
-def init_pan_routes(app):
-    """原封不动迁移您的API路由逻辑"""
-    @app.route('/api/search')
-    def api_search():
-        keyword = request.args.get('q', '').strip()
-        if not keyword:
-            return jsonify({"error": "关键词不能为空"}), 400
+bp = Blueprint('api', __name__)
+service = SearchService()  # 使用改造后的服务
+
+@bp.route('/search', methods=['POST'])
+def search():
+    data = request.get_json()
+    keyword = data.get('keyword', '').strip()
+    
+    # 输入验证
+    if not keyword or len(keyword) > 50:
+        return jsonify({'error': '无效关键词'}), 400
         
-        results = search_pan_resources(keyword)['ysxjjkl']
+    try:
+        # 获取分类结果
+        results = service.search_resources(keyword)
+        if 'error' in results:
+            return jsonify(results), 500
+            
+        # 按目标站格式返回
         return jsonify({
-            "success": True,
-            "count": len(results),
-            "results": results
+            'exact': results.get('exact_matches', []),
+            'related': results.get('related', []),
+            'short_plays': results.get('short_plays', [])
         })
+    except Exception as e:
+        return jsonify({'error': '服务器异常'}), 500
