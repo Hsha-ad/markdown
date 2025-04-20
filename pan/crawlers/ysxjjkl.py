@@ -14,68 +14,50 @@ def search_ysxjjkl(keyword):
             'Referer': 'https://ysxjjkl.souyisou.top/',
             'X-Requested-With': 'XMLHttpRequest'
         }
-        
+
         print(f"[新版爬虫] 请求URL: {url}", file=sys.stderr)
         response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
-        
+
         soup = BeautifulSoup(response.text, 'html.parser')
         results = []
-        
-        for item in soup.select('.resource-item, .search-result'):
+
+        for item in soup.select('.box'):
             try:
-                # 尝试多种方式提取标题
-                title = None
-                # 优先使用 data-title 属性
-                title = item.get('data-title')
-                if not title:
-                    # 尝试从 .title 或 h3 标签中提取
-                    title_element = item.select_one('.title, h3')
-                    if title_element:
-                        title = title_element.get_text(strip=True)
-                if not title:
-                    # 尝试从链接附近的文本中提取标题
-                    link = item.find('a', href=lambda x: x and ('pan.baidu.com' in x or 'aliyundrive.com' in x))
-                    if link:
-                        sibling_text = link.previous_sibling
-                        if sibling_text:
-                            title = sibling_text.strip()
-                        if not title:
-                            parent_text = link.parent.get_text(strip=True)
-                            if parent_text:
-                                title = parent_text
-                if not title:
+                # 提取标题
+                info_div = item.find('div', class_='info')
+                if info_div:
+                    # 获取链接前面的文本内容作为标题
+                    title = info_div.contents[0].strip()
+                else:
                     title = "未命名资源"
-                
+
                 link = item.find('a', href=lambda x: x and ('pan.baidu.com' in x or 'aliyundrive.com' in x))
                 if not link:
                     continue
-                
+
                 pwd = None
-                pwd_btn = item.select_one('.pwd-btn, .copy-pwd')
-                if pwd_btn and pwd_btn.get('data-pwd'):
-                    pwd = pwd_btn['data-pwd']
-                else:
-                    pwd_text = item.select_one('.password:not(:empty)')
-                    if pwd_text:
-                        pwd = re.search(r'[a-zA-Z0-9]{4}', pwd_text.get_text()).group()
-                
+                pwd_text = info_div.get_text() if info_div else ""
+                pwd_match = re.search(r'提取码：([a-zA-Z0-9]{4})', pwd_text)
+                if pwd_match:
+                    pwd = pwd_match.group(1)
+
                 result = {
                     'title': title[:100],
                     'url': link['href'],
                     'source': '影视集结号',
                     'valid': bool(pwd)
                 }
-                
+
                 if pwd and 'pwd=' not in result['url']:
                     result['url'] += f"?pwd={pwd}" if '?' not in result['url'] else f"&pwd={pwd}"
-                
+
                 results.append(result)
-                
+
             except Exception as e:
                 print(f"[解析异常] {str(e)}", file=sys.stderr)
                 continue
-        
+
         if not results:
             print("[警告] 主解析方案无结果，尝试备用方案", file=sys.stderr)
             for a in soup.find_all('a', href=re.compile(r'pan\.baidu\.com/s/[^\s]+')):
@@ -85,7 +67,7 @@ def search_ysxjjkl(keyword):
                     'source': 'ysxjjkl',
                     'valid': 'pwd=' in a['href']
                 })
-        
+
         print(f"[有效结果] 找到 {len(results)} 条资源", file=sys.stderr)
         return results
 
