@@ -7,7 +7,6 @@ from urllib.parse import quote
 from core.utils import check_valid
 
 def search_ysxjjkl(keyword):
-    """原封不动迁移您的爬虫代码"""
     try:
         url = f"https://ysxjjkl.souyisou.top/?search={quote(keyword)}"
         headers = {
@@ -23,10 +22,26 @@ def search_ysxjjkl(keyword):
         soup = BeautifulSoup(response.text, 'html.parser')
         results = []
         
-        # 以下是您原有的解析逻辑，完全不变
         for item in soup.select('.resource-item, .search-result'):
             try:
-                title = item.get('data-title') or item.select_one('.title, h3').get_text(strip=True)
+                # 尝试多种方式提取标题
+                title = None
+                # 优先使用 data-title 属性
+                title = item.get('data-title') 
+                if not title:
+                    # 尝试从 .title 或 h3 标签中提取
+                    title_element = item.select_one('.title, h3')
+                    if title_element:
+                        title = title_element.get_text(strip=True)
+                if not title:
+                    # 如果还没有找到，尝试从链接的父元素中提取文本
+                    link = item.find('a', href=lambda x: x and ('pan.baidu.com' in x or 'aliyundrive.com' in x))
+                    if link:
+                        title = link.parent.get_text(strip=True)
+                
+                if not title:
+                    title = "未命名资源"
+                
                 link = item.find('a', href=lambda x: x and ('pan.baidu.com' in x or 'aliyundrive.com' in x))
                 if not link:
                     continue
