@@ -1,76 +1,67 @@
-import requests
-from bs4 import BeautifulSoup
-import re
-import sys
-from urllib.parse import quote
-
 def search_ysxjjkl(keyword):
-    """修复版爬虫，确保能返回所有相关资源"""
+    """改进版爬虫，模拟浏览器请求"""
     try:
         url = f"https://ysxjjkl.souyisou.top/?search={quote(keyword)}"
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Referer': 'https://ysxjjkl.souyisou.top/',
-            'X-Requested-With': 'XMLHttpRequest'
+            'Accept': 'text/html,application/xhtml+xml',
+            'Accept-Language': 'zh-CN,zh;q=0.9',
+            'Cache-Control': 'no-cache',
         }
         
-        print(f"[爬虫] 正在请求: {url}", file=sys.stderr)
-        response = requests.get(url, headers=headers, timeout=15)
+        # 使用会话保持连接
+        session = requests.Session()
+        session.headers.update(headers)
         
-        # 检查响应内容是否为HTML（可能是被重定向到登录页）
-        if '<!DOCTYPE html>' in response.text[:15]:
-            print("[错误] 请求被重定向到HTML页面", file=sys.stderr)
-            return []
-            
+        # 添加重试机制
+        retry_strategy = requests.adapters.HTTPAdapter(
+            max_retries=3,
+            pool_connections=10,
+            pool_maxsize=100
+        )
+        session.mount('https://', retry_strategy)
+        
+        response = session.get(url, timeout=15)
         response.raise_for_status()
         
+        # 验证响应内容
+        if '请先登录' in response.text:
+            raise Exception('需要登录才能访问')
+            
         soup = BeautifulSoup(response.text, 'html.parser')
         results = []
         
-        # 解析所有资源项
-        for item in soup.select('.resource-item, .search-result, .related-item'):
+        # 解析资源项
+        for item in soup.select('.resource-item, .search-result'):
             try:
-                # 提取完整标题
-                title_elem = item.select_one('.title, h3, .file-name, a')
-                if not title_elem:
-                    continue
-                    
-                title = title_elem.get_text(strip=True)
-                if not title:
-                    continue
-                
-                # 提取网盘链接
+                title = item.select_one('.title, h3, .file-name').get_text(strip=True)
                 link = item.find('a', href=lambda x: x and ('pan.baidu.com' in x or 'aliyundrive.com' in x))
+                
                 if not link:
                     continue
-                
+                    
                 # 提取密码
-                pwd = None
-                pwd_btn = item.select_one('.pwd-btn, .copy-pwd')
-                if pwd_btn and pwd_btn.get('data-pwd'):
-                    pwd = pwd_btn['data-pwd']
-                else:
-                    pwd_text = item.select_one('.password:not(:empty)')
-                    if pwd_text:
-                        pwd_match = re.search(r'[a-zA-Z0-9]{4}', pwd_text.get_text())
-                        pwd = pwd_match.group() if pwd_match else '1234'
+                pwd = '1234'  # 默认密码
+                pwd_elem = item.select_one('.password, .pwd-btn')
+                if pwd_elem:
+                    pwd_match = re.search(r'[a-zA-Z0-9]{4}', pwd_elem.get_text())
+                    if pwd_match:
+                        pwd = pwd_match.group()
                 
-                # 构建结果对象
                 results.append({
                     'title': title,
                     'url': link['href'],
-                    'source': '影视集结号',
-                    'password': pwd or '1234',
-                    'valid': bool(pwd)
+                    'password': pwd,
+                    'source': '影视集结号'
                 })
                 
             except Exception as e:
-                print(f"[解析异常] {str(e)}", file=sys.stderr)
+                print(f"解析错误: {str(e)}")
                 continue
+                
+        return results
         
-        print(f"[爬虫] 找到 {len(results)} 条资源", file=sys.stderr)
-        return results if results else []
-
     except Exception as e:
-        print(f"[爬虫崩溃] {str(e)}", file=sys.stderr)
+        print(f"爬虫错误: {str(e)}")
         return []
