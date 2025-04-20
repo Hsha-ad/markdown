@@ -1,72 +1,127 @@
-// 修改为绝对路径请求（防止Vercel路由问题）
-const API_ENDPOINT = window.location.origin + '/api/search';
+// 使用立即执行函数隔离作用域
+(function() {
+    // 全局变量声明（只声明一次）
+    let chatInput, sendButton, chatContainer;
 
-async function performSearch() {
-    try {
-        const response = await fetch(API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'  // 必须添加
-            },
-            body: JSON.stringify({
-                keyword: document.getElementById('search-input').value
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    // DOM加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取DOM元素
+        chatInput = document.getElementById('chat-input');
+        sendButton = document.getElementById('send-button');
+        chatContainer = document.getElementById('chat-container');
+
+        // 事件监听（确保元素存在）
+        if (sendButton && chatInput) {
+            sendButton.addEventListener('click', handleSendMessage);
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') handleSendMessage();
+            });
         }
-        
-        const data = await response.json();
-        
-        // 严格按图片1格式渲染
-        renderResults({
-            exact: data.data?.exact || [],
-            related: data.data?.related || [],
-            shortPlays: data.data?.short_plays || []
-        });
-        
-    } catch (error) {
-        console.error('Search failed:', error);
-        showError(error.message);
-    }
-}
 
-// 图片1的精确渲染逻辑
-function renderResults(sections) {
-    const container = document.getElementById('results');
-    container.innerHTML = '';
-    
-    // 精确匹配区块
-    if (sections.exact.length) {
-        const header = createSectionHeader('🔍 精确匹配');
-        container.appendChild(header);
+        // 初始化滚动条
+        scrollToBottom();
+    });
+
+    // 消息处理函数
+    function handleSendMessage() {
+        const keyword = chatInput.value.trim();
+        if (!keyword) return;
+
+        addUserMessage(keyword);
+        chatInput.value = '';
+
+        const typingElement = showTyping();
         
-        sections.exact.forEach(item => {
-            container.appendChild(createResultItem(item));
-        });
+        fetch(`/api/search?q=${encodeURIComponent(keyword)}`)
+            .then(response => response.json())
+            .then(data => {
+                chatContainer.removeChild(typingElement);
+                addBotMessage(processSearchResults(data));
+            })
+            .catch(error => {
+                console.error('搜索失败:', error);
+                chatContainer.removeChild(typingElement);
+                addBotMessage(`<p style="color:red">请求失败: ${error.message}</p>`);
+            });
     }
-    
-    // 相关资源区块（与图片1完全一致）
-    if (sections.related.length) {
-        const header = createSectionHeader('📚 相关资源');
-        container.appendChild(header);
-        
-        sections.related.forEach(item => {
-            container.appendChild(createResultItem(item));
-        });
+
+    // 其他工具函数（保持原有功能）
+    function addUserMessage(text) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user-message';
+        messageDiv.innerHTML = `
+            <img src="https://via.placeholder.com/40/95EC69/FFFFFF?text=You" class="avatar">
+            <div class="message-content">
+                <div class="nickname">你</div>
+                <div class="bubble user-bubble">${text}</div>
+            </div>
+        `;
+        chatContainer.appendChild(messageDiv);
+        scrollToBottom();
     }
-    
-    // 短剧资源区块（图片1的[短剧]标签）
-    if (sections.shortPlays.length) {
-        const header = createSectionHeader('🎬 短剧资源');
-        container.appendChild(header);
-        
-        sections.shortPlays.forEach(item => {
-            const elem = createResultItem(item);
-            elem.dataset.shortPlay = true;  // 添加短剧标记
-            container.appendChild(elem);
-        });
+
+    function addBotMessage(html) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message bot-message';
+        messageDiv.innerHTML = `
+            <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar">
+            <div class="message-content">
+                <div class="nickname">网盘助手</div>
+                <div class="bubble bot-bubble">${html}</div>
+            </div>
+        `;
+        chatContainer.appendChild(messageDiv);
+        scrollToBottom();
     }
-}
+
+    function showTyping() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot-message';
+        typingDiv.innerHTML = `
+            <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar">
+            <div class="message-content">
+                <div class="nickname">网盘助手</div>
+                <div class="bubble bot-bubble">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        chatContainer.appendChild(typingDiv);
+        scrollToBottom();
+        return typingDiv;
+    }
+
+    function processSearchResults(data) {
+        if (!data.results || data.results.length === 0) {
+            return '<p>没有找到相关资源</p>';
+        }
+        return data.results.map(item => `
+            <div class="result-item">
+                <div class="result-title">${item.title} 
+                    <small>来自 ${item.source}</small>
+                </div>
+                <div class="link-box">
+                    <input type="text" value="${item.url}" readonly>
+                    <button onclick="copyLink(this)">复制</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function scrollToBottom() {
+        if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // 暴露全局函数（解决第三方脚本冲突）
+    window.copyLink = function(button) {
+        const input = button.parentElement.querySelector('input');
+        input.select();
+        document.execCommand('copy');
+        button.textContent = '已复制';
+        setTimeout(() => button.textContent = '复制', 2000);
+    };
+})();
