@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/css/style.css">
-    <title>网盘资源助手2.0</title>
+    <title>网盘资源助手2</title>
     <script src="/static/js/script.js"></script>
 <style>
     /* 资源条目样式 */
@@ -110,47 +110,84 @@
         <button id="send-button">发送</button>
     </div>
 
-  <script>
+ <script>
+    // 修复请求失败问题
+    async function sendSearchRequest(keyword) {
+        try {
+            const response = await fetch(`/api/search?q=${encodeURIComponent(keyword)}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            // 检查响应内容类型
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                if (text.startsWith('<!DOCTYPE html>')) {
+                    throw new Error('服务器返回了HTML而不是JSON');
+                }
+                throw new Error(`无效的响应类型: ${contentType}`);
+            }
+            
+            const data = await response.json();
+            return processSearchResults(data);
+            
+        } catch (error) {
+            console.error('搜索出错:', error);
+            return `<div class="error-message">
+                <p>搜索失败: ${error.message}</p>
+                <p>可能是服务器问题，请稍后再试</p>
+            </div>`;
+        }
+    }
+
+    // 修改结果处理函数
+    function processSearchResults(data) {
+        if (!data || !data.results || data.results.length === 0) {
+            return `<div class="no-results">
+                <p>没有找到相关资源</p>
+                <p>建议尝试：</p>
+                <ul>
+                    <li>检查关键词拼写</li>
+                    <li>使用更通用的关键词</li>
+                    <li>稍后再试</li>
+                </ul>
+            </div>`;
+        }
+        
+        currentResultsData = data.results;
+        currentResultsPage = 1;
+        
+        return renderPaginatedResults();
+    }
+
+    // 修改渲染函数
     function renderPaginatedResults() {
         const start = (currentResultsPage - 1) * resultsPerPage;
         const end = start + resultsPerPage;
         const pageResults = currentResultsData.slice(start, end);
         const totalPages = Math.ceil(currentResultsData.length / resultsPerPage);
         
-        // 如果没有结果
-        if (currentResultsData.length === 0) {
-            return `<div class="no-results">没有找到相关资源，请尝试其他关键词</div>`;
-        }
-        
         // 渲染结果列表
-        let resultsHtml = '';
-        let hasMainResults = false;
-        
-        pageResults.forEach((item, index) => {
-            // 添加分隔线（主资源和相关资源之间）
-            if (index > 0 && item.type === 'related' && !hasMainResults) {
-                resultsHtml += `<div class="divider"></div>`;
-                hasMainResults = true;
-            }
-            
-            resultsHtml += `
-                <div class="resource-entry ${item.type === 'main' ? 'main-resource' : ''}">
-                    <div class="resource-title">${item.title}</div>
-                    <div class="resource-meta">
-                        <span>链接：百度网盘</span>
-                        <span style="margin-left: 15px;">提取码：${item.password}</span>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="action-btn update-btn">每日更新库</button>
-                        <button class="action-btn feedback-btn">失效反馈</button>
-                        <button class="action-btn copy-btn" 
-                            onclick="copyResourceLink('${item.url}', '${item.password}')">
-                            复制链接
-                        </button>
-                    </div>
+        const resultsHtml = pageResults.map(item => `
+            <div class="resource-entry">
+                <div class="resource-title">${item.title}</div>
+                <div class="resource-meta">
+                    <span>链接：百度网盘</span>
+                    <span style="margin-left: 15px;">提取码：${item.password}</span>
                 </div>
-            `;
-        });
+                <div class="action-buttons">
+                    <button class="action-btn update-btn">每日更新库</button>
+                    <button class="action-btn feedback-btn">失效反馈</button>
+                    <button class="action-btn copy-btn" 
+                        onclick="copyResourceLink('${item.url}', '${item.password}')">
+                        复制链接
+                    </button>
+                </div>
+            </div>
+        `).join('');
         
         // 分页控制
         const paginationHtml = `
