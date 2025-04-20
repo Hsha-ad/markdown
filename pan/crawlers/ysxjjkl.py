@@ -1,74 +1,101 @@
-# pan/crawlers/ysxjjkl.py
-import requests
-from bs4 import BeautifulSoup
 import re
-import sys
+import jieba
+from bs4 import BeautifulSoup
 from urllib.parse import quote
-from core.utils import check_valid
+from difflib import SequenceMatcher
 
-def search_ysxjjkl(keyword):
-    """原封不动迁移您的爬虫代码"""
-    try:
-        url = f"https://ysxjjkl.souyisou.top/?search={quote(keyword)}"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Referer': 'https://ysxjjkl.souyisou.top/',
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-        
-        print(f"[新版爬虫] 请求URL: {url}", file=sys.stderr)
-        response = requests.get(url, headers=headers, timeout=15)
-        response.raise_for_status()
-        
-        soup = BeautifulSoup(response.text, 'html.parser')
+class YSXJJKLCrawler:
+    def __init__(self):
+        self.base_url = "https://www.ysxjjkl.com/search?q={}"
+        jieba.add_word('[短剧]')
+        jieba.add_word('提取码')
+
+    def search(self, keyword):
+        search_url = self.base_url.format(quote(keyword))
+        try:
+            html = self._fetch_html(search_url)
+            return self.parse_results(html, keyword)
+        except Exception as e:
+            print(f"爬取失败: {str(e)}")
+            return []
+
+    def _fetch_html(self, url):
+        # 实现HTTP请求（需根据实际需求补充）
+        pass
+
+    def parse_results(self, html, keyword):
+        soup = BeautifulSoup(html, 'lxml')
         results = []
         
-        # 以下是您原有的解析逻辑，完全不变
-        for item in soup.select('.resource-item, .search-result'):
-            try:
-                title = item.get('data-title') or item.select_one('.title, h3').get_text(strip=True)
-                link = item.find('a', href=lambda x: x and ('pan.baidu.com' in x or 'aliyundrive.com' in x))
-                if not link:
-                    continue
-                
-                pwd = None
-                pwd_btn = item.select_one('.pwd-btn, .copy-pwd')
-                if pwd_btn and pwd_btn.get('data-pwd'):
-                    pwd = pwd_btn['data-pwd']
-                else:
-                    pwd_text = item.select_one('.password:not(:empty)')
-                    if pwd_text:
-                        pwd = re.search(r'[a-zA-Z0-9]{4}', pwd_text.get_text()).group()
-                
-                result = {
-                    'title': title[:100],
-                    'url': link['href'],
-                    'source': '影视集结号',
-                    'valid': bool(pwd)
-                }
-                
-                if pwd and 'pwd=' not in result['url']:
-                    result['url'] += f"?pwd={pwd}" if '?' not in result['url'] else f"&pwd={pwd}"
-                
-                results.append(result)
-                
-            except Exception as e:
-                print(f"[解析异常] {str(e)}", file=sys.stderr)
+        for item in soup.select('.resource-item'):
+            title_tag = item.select_one('.title')
+            if not title_tag:
                 continue
-        
-        if not results:
-            print("[警告] 主解析方案无结果，尝试备用方案", file=sys.stderr)
-            for a in soup.find_all('a', href=re.compile(r'pan\.baidu\.com/s/[^\s]+')):
+                
+            raw_title = title_tag.get_text(strip=True)
+            processed_title = self._process_title(keyword, raw_title)
+            
+            link_tag = item.select_one('.link[href*="pan.baidu.com"]')
+            pwd_tag = item.select_one('.pwd')
+            
+            if link_tag and pwd_tag:
                 results.append({
-                    'title': a.get_text(strip=True) or "百度网盘资源",
-                    'url': a['href'],
-                    'source': 'ysxjjkl',
-                    'valid': 'pwd=' in a['href']
+                    'title': processed_title,
+                    'original_title': raw_title,
+                    'link': link_tag['href'],
+                    'pwd': pwd_tag.get_text(strip=True).replace('提取码：', ''),
+                    'is_short': self._is_short_play(raw_title),
+                    'relevance': self._calculate_relevance(keyword, raw_title)
                 })
         
-        print(f"[有效结果] 找到 {len(results)} 条资源", file=sys.stderr)
-        return results
+        # 按相关性排序
+        return sorted(results, key=lambda x: x['relevance'], reverse=True)
 
-    except Exception as e:
-        print(f"[爬虫崩溃] {str(e)}", file=sys.stderr)
-        return []
+    def _process_title(self, keyword, title):
+        """保留原标题结构的关键词处理"""
+        # 短剧特殊处理
+        if self._is_short_play(title):
+            return title
+        
+        # 精确匹配处理
+        if keyword in title:
+            return title
+            
+        # 相似内容处理
+        if SequenceMatcher(None, keyword, title).ratio() > 0.6:
+            return f"{keyword}相关：{title}"
+            
+        return title
+
+    def _is_short_play(self, title):
+        """短剧识别"""
+        return '[短剧]' in title or '短剧' in title or '集全' in title
+
+    def _calculate_relevance(self, keyword, title):
+        """基于编辑距离和词频的相关性计算"""
+        keyword_chars = set(keyword)
+        title_chars = set(title)
+        
+        # 字符重合度
+        char_overlap = len(keyword_chars & title_chars) / len(keyword_chars)
+        
+        # 词频权重
+        word_weights = {
+            '完整版': 1.5,
+            '高清': 1.2,
+            '全集': 1.3,
+            '[短剧]': 0.8
+        }
+        
+        weight = sum(word_weights.get(word, 1) for word in jieba.cut(title))
+        
+        return char_overlap * weight
+
+    def _fetch_html(self, url):
+        # 实现实际的HTTP请求
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        return response.text

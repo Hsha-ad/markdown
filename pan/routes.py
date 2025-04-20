@@ -1,18 +1,23 @@
-# pan/routes.py
-from flask import request, jsonify
-from .services import search_pan_resources
+from flask import Blueprint, request, jsonify
+from pan.services import SearchService
 
-def init_pan_routes(app):
-    """原封不动迁移您的API路由逻辑"""
-    @app.route('/api/search')
-    def api_search():
-        keyword = request.args.get('q', '').strip()
-        if not keyword:
-            return jsonify({"error": "关键词不能为空"}), 400
+bp = Blueprint('api', __name__)
+service = SearchService()
+
+@bp.route('/search', methods=['POST'])
+def search():
+    data = request.get_json()
+    keyword = data.get('keyword', '').strip()
+    
+    if not keyword or len(keyword) > 50:
+        return jsonify({'error': '无效关键词'}), 400
         
-        results = search_pan_resources(keyword)['ysxjjkl']
-        return jsonify({
-            "success": True,
-            "count": len(results),
-            "results": results
-        })
+    try:
+        results = service.get_formatted_results(keyword)
+        return jsonify({'data': results})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/health')
+def health_check():
+    return jsonify({'status': 'healthy'})
