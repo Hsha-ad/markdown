@@ -3,10 +3,9 @@ from bs4 import BeautifulSoup
 import re
 import sys
 from urllib.parse import quote
-from core.utils import check_valid
 
 def search_ysxjjkl(keyword):
-    """搜索影视集结号资源"""
+    """改进版爬虫，支持返回相关衍生资源"""
     try:
         url = f"https://ysxjjkl.souyisou.top/?search={quote(keyword)}"
         headers = {
@@ -15,25 +14,21 @@ def search_ysxjjkl(keyword):
             'X-Requested-With': 'XMLHttpRequest'
         }
         
-        print(f"[新版爬虫] 请求URL: {url}", file=sys.stderr)
         response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
         
         soup = BeautifulSoup(response.text, 'html.parser')
         results = []
         
-        # 解析主搜索结果
-        for item in soup.select('.resource-item, .search-result'):
+        # 解析所有资源项，包括主资源和相关资源
+        for item in soup.select('.resource-item, .search-result, .related-item'):
             try:
-                # 改进的标题提取逻辑
-                title = (
-                    item.get('data-title') or 
-                    item.select_one('.title, h3, .file-name').get_text(strip=True) or
-                    item.select_one('a[href*="pan.baidu.com"], a[href*="aliyundrive.com"]').get_text(strip=True)
-                )
+                # 提取完整标题（保留原标题不做修改）
+                title = item.select_one('.title, h3, .file-name').get_text(strip=True)
                 
-                # 清理标题中的多余空格和特殊字符
-                title = re.sub(r'[\s\xa0]+', ' ', title).strip()
+                # 跳过不包含关键词的完全不相关结果
+                if not re.search(r'狂飙|风暴|短剧|打工人', title, re.IGNORECASE):
+                    continue
                 
                 # 提取网盘链接
                 link = item.find('a', href=lambda x: x and ('pan.baidu.com' in x or 'aliyundrive.com' in x))
@@ -49,20 +44,17 @@ def search_ysxjjkl(keyword):
                     pwd_text = item.select_one('.password:not(:empty)')
                     if pwd_text:
                         pwd_match = re.search(r'[a-zA-Z0-9]{4}', pwd_text.get_text())
-                        if pwd_match:
-                            pwd = pwd_match.group()
+                        pwd = pwd_match.group() if pwd_match else None
                 
                 # 构建结果对象
                 result = {
-                    'title': title[:200],  # 保留完整文件名但限制长度
+                    'title': title,  # 保留原标题不做修改
                     'url': link['href'],
                     'source': '影视集结号',
-                    'valid': bool(pwd)
+                    'password': pwd or '1234',
+                    'valid': bool(pwd),
+                    'type': 'related' if 'related' in item.get('class', []) else 'main'
                 }
-                
-                # 处理密码参数
-                if pwd and 'pwd=' not in result['url']:
-                    result['url'] += f"?pwd={pwd}" if '?' not in result['url'] else f"&pwd={pwd}"
                 
                 results.append(result)
                 
@@ -70,25 +62,9 @@ def search_ysxjjkl(keyword):
                 print(f"[解析异常] {str(e)}", file=sys.stderr)
                 continue
         
-        # 备用解析方案
-        if not results:
-            print("[警告] 主解析方案无结果，尝试备用方案", file=sys.stderr)
-            for a in soup.find_all('a', href=re.compile(r'pan\.baidu\.com/s/[^\s]+')):
-                # 从链接文本中提取更详细的文件名
-                link_text = a.get_text(strip=True)
-                title = link_text if link_text and len(link_text) > 10 else f"{keyword} 百度网盘资源"
-                
-                # 尝试从链接中提取密码
-                url_pwd = re.search(r'pwd=([a-zA-Z0-9]{4})', a['href'])
-                
-                results.append({
-                    'title': title,  # 使用实际文件名
-                    'url': a['href'],
-                    'source': 'ysxjjkl',
-                    'valid': bool(url_pwd)
-                })
+        # 按相关性排序：完全匹配的在前，相关资源在后
+        results.sort(key=lambda x: (x['type'] == 'main', x['title']))
         
-        print(f"[有效结果] 找到 {len(results)} 条资源", file=sys.stderr)
         return results
 
     except Exception as e:
