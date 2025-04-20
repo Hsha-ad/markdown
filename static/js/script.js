@@ -1,142 +1,127 @@
-const chatInput = document.getElementById('chat-input');
-const sendButton = document.getElementById('send-button');
-const chatContainer = document.getElementById('chat-container');
+// 使用立即执行函数隔离作用域
+(function() {
+    // 全局变量声明（只声明一次）
+    let chatInput, sendButton, chatContainer;
 
-// 添加用户消息
-function addUserMessage(text) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message user-message';
-    messageDiv.innerHTML = `
-        <img src="https://via.placeholder.com/40/95EC69/FFFFFF?text=You" class="avatar" alt="用户头像">
-        <div class="message-content">
-            <div class="nickname">你</div>
-            <div class="bubble user-bubble">${text}</div>
-        </div>
-    `;
-    chatContainer.appendChild(messageDiv);
-    scrollToBottom();
-}
+    // DOM加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取DOM元素
+        chatInput = document.getElementById('chat-input');
+        sendButton = document.getElementById('send-button');
+        chatContainer = document.getElementById('chat-container');
 
-// 添加机器人消息
-function addBotMessage(html) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message bot-message';
-    messageDiv.innerHTML = `
-        <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar" alt="助手头像">
-        <div class="message-content">
-            <div class="nickname">网盘助手</div>
-            <div class="bubble bot-bubble">${html}</div>
-        </div>
-    `;
-    chatContainer.appendChild(messageDiv);
-    scrollToBottom();
-}
+        // 事件监听（确保元素存在）
+        if (sendButton && chatInput) {
+            sendButton.addEventListener('click', handleSendMessage);
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') handleSendMessage();
+            });
+        }
 
-// 显示正在输入状态
-function showTyping() {
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'message bot-message';
-    typingDiv.innerHTML = `
-        <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar" alt="助手头像">
-        <div class="message-content">
-            <div class="nickname">网盘助手</div>
-            <div class="bubble bot-bubble">
-                <div class="typing-indicator">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
+        // 初始化滚动条
+        scrollToBottom();
+    });
+
+    // 消息处理函数
+    function handleSendMessage() {
+        const keyword = chatInput.value.trim();
+        if (!keyword) return;
+
+        addUserMessage(keyword);
+        chatInput.value = '';
+
+        const typingElement = showTyping();
+        
+        fetch(`/api/search?q=${encodeURIComponent(keyword)}`)
+            .then(response => response.json())
+            .then(data => {
+                chatContainer.removeChild(typingElement);
+                addBotMessage(processSearchResults(data));
+            })
+            .catch(error => {
+                console.error('搜索失败:', error);
+                chatContainer.removeChild(typingElement);
+                addBotMessage(`<p style="color:red">请求失败: ${error.message}</p>`);
+            });
+    }
+
+    // 其他工具函数（保持原有功能）
+    function addUserMessage(text) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user-message';
+        messageDiv.innerHTML = `
+            <img src="https://via.placeholder.com/40/95EC69/FFFFFF?text=You" class="avatar">
+            <div class="message-content">
+                <div class="nickname">你</div>
+                <div class="bubble user-bubble">${text}</div>
+            </div>
+        `;
+        chatContainer.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    function addBotMessage(html) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message bot-message';
+        messageDiv.innerHTML = `
+            <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar">
+            <div class="message-content">
+                <div class="nickname">网盘助手</div>
+                <div class="bubble bot-bubble">${html}</div>
+            </div>
+        `;
+        chatContainer.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    function showTyping() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot-message';
+        typingDiv.innerHTML = `
+            <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar">
+            <div class="message-content">
+                <div class="nickname">网盘助手</div>
+                <div class="bubble bot-bubble">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
-    chatContainer.appendChild(typingDiv);
-    scrollToBottom();
-    return typingDiv;
-}
-
-// 滚动到底部
-function scrollToBottom() {
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-}
-
-// 处理搜索结果
-function processSearchResults(data) {
-    if (!data.results || data.results.length === 0) {
-        return '<p>没有找到相关资源，请尝试其他关键词。</p>';
+        `;
+        chatContainer.appendChild(typingDiv);
+        scrollToBottom();
+        return typingDiv;
     }
-    
-    const validResults = data.results.filter(item => item.valid !== false);
-    if (validResults.length === 0) {
-        return '<p>找到的资源链接已失效，请尝试其他关键词。</p>';
-    }
-    
-    return validResults.map(item => `
-        <div class="result-item">
-            <div class="result-title">${item.title || '未命名资源'} 
-                <small style="color: #888;">来自 ${item.source || '未知来源'}</small>
-            </div>
-            <div class="link-box">
-                <input type="text" value="${item.url}" readonly>
-                <button onclick="copyLink(this)">复制</button>
-            </div>
-        </div>
-    `).join('');
-}
 
-// 复制链接
-function copyLink(button) {
-    const input = button.parentElement.querySelector('input');
-    input.select();
-    document.execCommand('copy');
-    
-    button.textContent = '已复制';
-    setTimeout(() => {
-        button.textContent = '复制';
-    }, 2000);
-}
-
-// 发送搜索请求
-async function sendSearchRequest(keyword) {
-    try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(keyword)}`);
-        
-        if (!response.ok) {
-            throw new Error(`请求失败: ${response.status}`);
+    function processSearchResults(data) {
+        if (!data.results || data.results.length === 0) {
+            return '<p>没有找到相关资源</p>';
         }
-        
-        const data = await response.json();
-        return processSearchResults(data);
-        
-    } catch (error) {
-        console.error('搜索出错:', error);
-        return `<p>搜索失败: ${error.message}</p>`;
+        return data.results.map(item => `
+            <div class="result-item">
+                <div class="result-title">${item.title} 
+                    <small>来自 ${item.source}</small>
+                </div>
+                <div class="link-box">
+                    <input type="text" value="${item.url}" readonly>
+                    <button onclick="copyLink(this)">复制</button>
+                </div>
+            </div>
+        `).join('');
     }
-}
 
-// 处理发送消息
-async function handleSendMessage() {
-    const keyword = chatInput.value.trim();
-    if (!keyword) return;
-    
-    // 添加用户消息
-    addUserMessage(keyword);
-    chatInput.value = '';
-    
-    // 显示机器人正在输入
-    const typingElement = showTyping();
-    
-    // 发送请求并获取结果
-    const resultHtml = await sendSearchRequest(keyword);
-    
-    // 移除正在输入状态
-    chatContainer.removeChild(typingElement);
-    
-    // 添加机器人回复
-    addBotMessage(resultHtml);
-}
+    function scrollToBottom() {
+        if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
 
-// 事件监听
-sendButton.addEventListener('click', handleSendMessage);
-chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleSendMessage();
-});
+    // 暴露全局函数（解决第三方脚本冲突）
+    window.copyLink = function(button) {
+        const input = button.parentElement.querySelector('input');
+        input.select();
+        document.execCommand('copy');
+        button.textContent = '已复制';
+        setTimeout(() => button.textContent = '复制', 2000);
+    };
+})();
