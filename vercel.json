@@ -3,17 +3,22 @@
   "builds": [
     {
       "src": "server.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb",
+        "memory": 3008,
+        "includeFiles": ["*.pkl", "*.json"]
+      }
     }
   ],
   "routes": [
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "server.py"
+      "src": "/api/search",
+      "dest": "/server.py",
+      "methods": ["POST"],
+      "headers": {
+        "Cache-Control": "public, max-age=3600"
+      }
     }
   ]
 }
