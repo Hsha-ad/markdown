@@ -1,4 +1,3 @@
-# pan/crawlers/ysxjjkl.py
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -7,7 +6,7 @@ from urllib.parse import quote
 from core.utils import check_valid
 
 def search_ysxjjkl(keyword):
-    """原封不动迁移您的爬虫代码"""
+    """优化后的爬虫代码，增加重试机制和超时处理"""
     try:
         url = f"https://ysxjjkl.souyisou.top/?search={quote(keyword)}"
         headers = {
@@ -17,18 +16,31 @@ def search_ysxjjkl(keyword):
         }
         
         print(f"[新版爬虫] 请求URL: {url}", file=sys.stderr)
-        response = requests.get(url, headers=headers, timeout=15)
-        response.raise_for_status()
+        
+        # 增加重试机制
+        for attempt in range(3):
+            try:
+                response = requests.get(url, headers=headers, timeout=(5, 15))
+                response.raise_for_status()
+                break
+            except requests.exceptions.RequestException as e:
+                if attempt == 2:
+                    raise
+                print(f"[重试 {attempt+1}/3] 请求失败: {str(e)}", file=sys.stderr)
+                continue
         
         soup = BeautifulSoup(response.text, 'html.parser')
         results = []
         
-        # 以下是您原有的解析逻辑，完全不变
+        # 优化解析逻辑
         for item in soup.select('.resource-item, .search-result'):
             try:
-                title = item.get('data-title') or item.select_one('.title, h3').get_text(strip=True)
+                title = (item.get('data-title') or 
+                        (item.select_one('.title, h3') and item.select_one('.title, h3').get_text(strip=True)) or
+                        "未命名资源")
+                
                 link = item.find('a', href=lambda x: x and ('pan.baidu.com' in x or 'aliyundrive.com' in x))
-                if not link:
+                if not link or not link.get('href'):
                     continue
                 
                 pwd = None
@@ -38,7 +50,8 @@ def search_ysxjjkl(keyword):
                 else:
                     pwd_text = item.select_one('.password:not(:empty)')
                     if pwd_text:
-                        pwd = re.search(r'[a-zA-Z0-9]{4}', pwd_text.get_text()).group()
+                        match = re.search(r'[a-zA-Z0-9]{4}', pwd_text.get_text())
+                        pwd = match.group() if match else None
                 
                 result = {
                     'title': title[:100],
@@ -56,14 +69,16 @@ def search_ysxjjkl(keyword):
                 print(f"[解析异常] {str(e)}", file=sys.stderr)
                 continue
         
+        # 优化备用方案
         if not results:
             print("[警告] 主解析方案无结果，尝试备用方案", file=sys.stderr)
             for a in soup.find_all('a', href=re.compile(r'pan\.baidu\.com/s/[^\s]+')):
+                href = a.get('href', '')
                 results.append({
                     'title': a.get_text(strip=True) or "百度网盘资源",
-                    'url': a['href'],
+                    'url': href,
                     'source': 'ysxjjkl',
-                    'valid': 'pwd=' in a['href']
+                    'valid': 'pwd=' in href
                 })
         
         print(f"[有效结果] 找到 {len(results)} 条资源", file=sys.stderr)
