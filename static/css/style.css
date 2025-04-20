@@ -7,6 +7,17 @@
     --header-bg: #F7F7F7;
 }
 
+/* markdown/static/css/style.css */
+.网盘按钮 {
+    padding: 2px 6px;
+    background: #F5F5F5;
+    border: 1px solid #E5E5E5;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--bg-color);
