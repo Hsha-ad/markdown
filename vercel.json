@@ -2,12 +2,12 @@
   "version": 2,
   "routes": [
     {
-      "src": "/api/(.*)", // 匹配所有以 /api/ 开头的请求
-      "dest": "/api/$1"  // 转发到后端接口（需与 Flask 路由匹配）
+      "src": "/api/(.*)", 
+      "dest": "/api/$1" 
     },
     {
       "src": "(.*)",
-      "dest": "/index.html" // 其他请求指向前端首页
+      "dest": "/index.html" 
     }
   ]
 }
