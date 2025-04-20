@@ -299,7 +299,7 @@
         const totalPages = Math.ceil(currentResultsData.length / resultsPerPage);
 
         // 处理文件名过长的情况
-        const maxLength = 20; // 最大长度
+        const maxLength = 16; // 最大长度
         const resultsHtml = pageResults.map(item => {
             let title = item.title;
             if (title.length > maxLength) {
