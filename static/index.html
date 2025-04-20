@@ -6,49 +6,78 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <title>网盘资源助手2.0</title>
     <script src="/static/js/script.js"></script>
-    <style>
-        /* 保持原有样式不变 */
-        :root {
-            --bg-color: #EDEDED;
-            --text-color: #333;
-            --primary-color: #07C160;
-            --user-bubble: #95EC69;
-            --bot-bubble: #FFFFFF;
-            --header-bg: #F7F7F7;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-color);
-            color: var(--text-color);
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        /* 保持所有原有样式不变... */
-        
-        /* 新增结果标题样式 */
-        .result-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #333;
-            font-size: 15px;
-            line-height: 1.4;
-        }
-        
-        /* 来源标签样式 */
-        .result-source {
-            display: inline-block;
-            background: #EEE;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 12px;
-            color: #666;
-            margin-left: 6px;
-        }
-    </style>
+<style>
+    /* 资源条目样式 */
+    .resource-entry {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+        background: white;
+        position: relative;
+    }
+    
+    /* 主资源标记 */
+    .main-resource::after {
+        content: "精准匹配";
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #07C160;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+    
+    .resource-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 8px;
+    }
+    
+    .resource-meta {
+        color: #666;
+        font-size: 14px;
+        margin: 6px 0;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    
+    .action-btn {
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    
+    .update-btn {
+        background: #ff9800;
+        color: white;
+    }
+    
+    .feedback-btn {
+        background: #ff5722;
+        color: white;
+    }
+    
+    .copy-btn {
+        background: #4285f4;
+        color: white;
+    }
+    
+    /* 分隔线 */
+    .divider {
+        border-top: 1px dashed #e0e0e0;
+        margin: 15px 0;
+    }
+</style>
 </head>
 <body>
     <div class="chat-header">
@@ -81,32 +110,46 @@
         <button id="send-button">发送</button>
     </div>
 
-    <script>
-        // 保持原有JavaScript代码不变...
+   <script>
+    function renderPaginatedResults() {
+        const start = (currentResultsPage - 1) * resultsPerPage;
+        const end = start + resultsPerPage;
+        const pageResults = currentResultsData.slice(start, end);
+        const totalPages = Math.ceil(currentResultsData.length / resultsPerPage);
         
-        // 修改结果渲染函数
-        function renderPaginatedResults() {
-            const start = (currentResultsPage - 1) * resultsPerPage;
-            const end = start + resultsPerPage;
-            const pageResults = currentResultsData.slice(start, end);
-            const totalPages = Math.ceil(currentResultsData.length / resultsPerPage);
+        // 新的资源条目渲染方式
+        let resultsHtml = '';
+        let lastType = null;
+        
+        pageResults.forEach((item, index) => {
+            // 添加分隔线（主资源和相关资源之间）
+            if (index > 0 && lastType !== item.type) {
+                resultsHtml += `<div class="divider"></div>`;
+            }
+            lastType = item.type;
             
-            // 改进的结果列表渲染
-            const resultsHtml = pageResults.map(item => `
-                <div class="result-item">
-                    <div class="result-title">
-                        ${item.title || '未命名资源'}
-                        <span class="result-source">${item.source || '未知来源'}</span>
+            resultsHtml += `
+                <div class="resource-entry ${item.type === 'main' ? 'main-resource' : ''}">
+                    <div class="resource-title">${item.title}</div>
+                    <div class="resource-meta">
+                        <span>链接：百度网盘</span>
+                        <span style="margin-left: 15px;">提取码：${item.password || '1234'}</span>
                     </div>
-                    <div class="link-box">
-                        <input type="text" value="${item.url}" readonly>
-                        <button onclick="copyLink(this)">复制</button>
+                    <div class="action-buttons">
+                        <button class="action-btn update-btn">每日更新库</button>
+                        <button class="action-btn feedback-btn">失效反馈</button>
+                        <button class="action-btn copy-btn" 
+                            onclick="copyResourceLink('${item.url}', '${item.password}')">
+                            复制链接
+                        </button>
                     </div>
                 </div>
-            `).join('');
-            
-            // 分页控制保持不变...
-            const paginationHtml = `
+            `;
+        });
+        
+        // 分页控制
+        const paginationHtml = `
+            <div style="margin-top: 20px;">
                 <div class="pagination-controls">
                     <button class="pagination-btn" onclick="changeResultsPage(-1)" ${currentResultsPage <= 1 ? 'disabled' : ''}>
                         上一页
@@ -118,12 +161,11 @@
                 <div class="pagination-info">
                     第 ${currentResultsPage}/${totalPages} 页 (共 ${currentResultsData.length} 条结果)
                 </div>
-            `;
-            
-            return resultsHtml + paginationHtml;
-        }
+            </div>
+        `;
         
-        // 保持其余JavaScript代码不变...
-    </script>
+        return resultsHtml + paginationHtml;
+    }
+</script>
 </body>
 </html>
