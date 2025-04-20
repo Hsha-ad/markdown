@@ -110,30 +110,35 @@
         <button id="send-button">发送</button>
     </div>
 
-   <script>
+  <script>
     function renderPaginatedResults() {
         const start = (currentResultsPage - 1) * resultsPerPage;
         const end = start + resultsPerPage;
         const pageResults = currentResultsData.slice(start, end);
         const totalPages = Math.ceil(currentResultsData.length / resultsPerPage);
         
-        // 新的资源条目渲染方式
+        // 如果没有结果
+        if (currentResultsData.length === 0) {
+            return `<div class="no-results">没有找到相关资源，请尝试其他关键词</div>`;
+        }
+        
+        // 渲染结果列表
         let resultsHtml = '';
-        let lastType = null;
+        let hasMainResults = false;
         
         pageResults.forEach((item, index) => {
             // 添加分隔线（主资源和相关资源之间）
-            if (index > 0 && lastType !== item.type) {
+            if (index > 0 && item.type === 'related' && !hasMainResults) {
                 resultsHtml += `<div class="divider"></div>`;
+                hasMainResults = true;
             }
-            lastType = item.type;
             
             resultsHtml += `
                 <div class="resource-entry ${item.type === 'main' ? 'main-resource' : ''}">
                     <div class="resource-title">${item.title}</div>
                     <div class="resource-meta">
                         <span>链接：百度网盘</span>
-                        <span style="margin-left: 15px;">提取码：${item.password || '1234'}</span>
+                        <span style="margin-left: 15px;">提取码：${item.password}</span>
                     </div>
                     <div class="action-buttons">
                         <button class="action-btn update-btn">每日更新库</button>
