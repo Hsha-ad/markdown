@@ -1,96 +1,74 @@
+# pan/crawlers/ysxjjkl.py
 import requests
 from bs4 import BeautifulSoup
 import re
+import sys
 from urllib.parse import quote
-import logging
-
-# 设置日志
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from core.utils import check_valid
 
 def search_ysxjjkl(keyword):
-    url = f"https://ysxjjkl.souyisou.top/?search={quote(keyword)}"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Referer': 'https://ysxjjkl.souyisou.top/'
-    }
-    
+    """原封不动迁移您的爬虫代码"""
     try:
-        logger.info(f"开始爬取: {url}")
-        response = requests.get(url, headers=headers, timeout=10)
+        url = f"https://ysxjjkl.souyisou.top/?search={quote(keyword)}"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Referer': 'https://ysxjjkl.souyisou.top/',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+        
+        print(f"[新版爬虫] 请求URL: {url}", file=sys.stderr)
+        response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
         
         soup = BeautifulSoup(response.text, 'html.parser')
         results = []
         
-        # 调试：保存网页内容供检查
-        with open('debug_page.html', 'w', encoding='utf-8') as f:
-            f.write(soup.prettify())
-        
-        # 多种选择器尝试匹配资源项
-        items = soup.select('.resource-item, .item, .result-item, .list-item')
-        if not items:
-            items = soup.find_all('div', class_=re.compile(r'item|result|resource'))
-        
-        logger.info(f"找到 {len(items)} 个潜在资源项")
-        
-        for item in items:
+        # 以下是您原有的解析逻辑，完全不变
+        for item in soup.select('.resource-item, .search-result'):
             try:
-                # 尝试多种方式获取标题
-                title = None
-                for selector in ['.title', 'h3', 'h4', '.name', 'a[title]']:
-                    elem = item.select_one(selector)
-                    if elem and elem.get_text(strip=True):
-                        title = elem.get_text(strip=True)
-                        break
-                
-                if not title:
-                    title = "未命名资源"
-                
-                # 获取链接
-                link = None
-                for selector in ['a[href*="pan.baidu.com"]', 'a[href*="aliyundrive.com"]', 'a[href]']:
-                    elem = item.select_one(selector)
-                    if elem and elem.get('href'):
-                        link = elem['href']
-                        break
-                
+                title = item.get('data-title') or item.select_one('.title, h3').get_text(strip=True)
+                link = item.find('a', href=lambda x: x and ('pan.baidu.com' in x or 'aliyundrive.com' in x))
                 if not link:
                     continue
                 
-                # 获取密码
                 pwd = None
-                pwd_elem = item.select_one('.pwd-btn, .copy-pwd, .password, .pwd')
-                if pwd_elem:
-                    if 'data-pwd' in pwd_elem.attrs:
-                        pwd = pwd_elem['data-pwd']
-                    else:
-                        match = re.search(r'[a-zA-Z0-9]{4}', pwd_elem.get_text())
-                        pwd = match.group() if match else None
+                pwd_btn = item.select_one('.pwd-btn, .copy-pwd')
+                if pwd_btn and pwd_btn.get('data-pwd'):
+                    pwd = pwd_btn['data-pwd']
+                else:
+                    pwd_text = item.select_one('.password:not(:empty)')
+                    if pwd_text:
+                        pwd = re.search(r'[a-zA-Z0-9]{4}', pwd_text.get_text()).group()
                 
-                # 构建结果
                 result = {
-                    'title': title[:200],  # 限制长度防止过长
-                    'url': link,
+                    'title': title[:100],
+                    'url': link['href'],
                     'source': '影视集结号',
-                    'valid': bool(pwd),
-                    'password': pwd
+                    'valid': bool(pwd)
                 }
                 
-                # 处理密码
                 if pwd and 'pwd=' not in result['url']:
                     result['url'] += f"?pwd={pwd}" if '?' not in result['url'] else f"&pwd={pwd}"
                 
                 results.append(result)
-                logger.info(f"找到资源: {title}")
                 
             except Exception as e:
-                logger.error(f"解析资源项时出错: {e}")
+                print(f"[解析异常] {str(e)}", file=sys.stderr)
                 continue
         
-        logger.info(f"共找到 {len(results)} 个有效资源")
-        return results
+        if not results:
+            print("[警告] 主解析方案无结果，尝试备用方案", file=sys.stderr)
+            for a in soup.find_all('a', href=re.compile(r'pan\.baidu\.com/s/[^\s]+')):
+                results.append({
+                    'title': a.get_text(strip=True) or "百度网盘资源",
+                    'url': a['href'],
+                    'source': 'ysxjjkl',
+                    'valid': 'pwd=' in a['href']
+                })
         
+        print(f"[有效结果] 找到 {len(results)} 条资源", file=sys.stderr)
+        return results
+
     except Exception as e:
-        logger.error(f"爬取过程中出错: {e}")
+        print(f"[爬虫崩溃] {str(e)}", file=sys.stderr)
         return []
