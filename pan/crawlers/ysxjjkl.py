@@ -27,18 +27,23 @@ def search_ysxjjkl(keyword):
                 # 尝试多种方式提取标题
                 title = None
                 # 优先使用 data-title 属性
-                title = item.get('data-title') 
+                title = item.get('data-title')
                 if not title:
                     # 尝试从 .title 或 h3 标签中提取
                     title_element = item.select_one('.title, h3')
                     if title_element:
                         title = title_element.get_text(strip=True)
                 if not title:
-                    # 如果还没有找到，尝试从链接的父元素中提取文本
+                    # 尝试从链接附近的文本中提取标题
                     link = item.find('a', href=lambda x: x and ('pan.baidu.com' in x or 'aliyundrive.com' in x))
                     if link:
-                        title = link.parent.get_text(strip=True)
-                
+                        sibling_text = link.previous_sibling
+                        if sibling_text:
+                            title = sibling_text.strip()
+                        if not title:
+                            parent_text = link.parent.get_text(strip=True)
+                            if parent_text:
+                                title = parent_text
                 if not title:
                     title = "未命名资源"
                 
