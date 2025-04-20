@@ -201,7 +201,7 @@
     <div class="chat-container" id="chat-container">
         <!-- 初始欢迎消息 -->
         <div class="message bot-message">
-            <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar" alt="助手头像">
+            <img src="" class="avatar" alt="助手头像">
             <div class="message-content">
                 <div class="nickname">网盘助手</div>
                 <div class="bubble bot-bubble">
@@ -223,101 +223,92 @@
         <button id="send-button">发送</button>
     </div>
 
-    <script>
-        const chatInput = document.getElementById('chat-input');
-        const sendButton = document.getElementById('send-button');
-        const chatContainer = document.getElementById('chat-container');
-        
-        // 分页相关变量
-        let currentResultsPage = 1;
-        let currentResultsData = [];
-        const resultsPerPage = 5;
+    <!-- 其他代码保持不变 -->
+<script>
+    const chatInput = document.getElementById('chat-input');
+    const sendButton = document.getElementById('send-button');
+    const chatContainer = document.getElementById('chat-container');
+    
+    // 分页相关变量
+    let currentResultsPage = 1;
+    let currentResultsData = [];
+    const resultsPerPage = 5;
 
-        // 添加用户消息
-        function addUserMessage(text) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message user-message';
-            messageDiv.innerHTML = `
-                <img src="https://via.placeholder.com/40/95EC69/FFFFFF?text=You" class="avatar" alt="用户头像">
-                <div class="message-content">
-                    <div class="nickname">你</div>
-                    <div class="bubble user-bubble">${text}</div>
-                </div>
-            `;
-            chatContainer.appendChild(messageDiv);
-            scrollToBottom();
-        }
-        
-        // 添加机器人消息
-        function addBotMessage(html) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message bot-message';
-            messageDiv.innerHTML = `
-                <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar" alt="助手头像">
-                <div class="message-content">
-                    <div class="nickname">网盘助手</div>
-                    <div class="bubble bot-bubble">${html}</div>
-                </div>
-            `;
-            chatContainer.appendChild(messageDiv);
-            scrollToBottom();
-        }
-        
-        // 显示正在输入状态
-        function showTyping() {
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'message bot-message';
-            typingDiv.innerHTML = `
-                <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar" alt="助手头像">
-                <div class="message-content">
-                    <div class="nickname">网盘助手</div>
-                    <div class="bubble bot-bubble">
-                        <div class="typing-indicator">
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                        </div>
+    // 添加用户消息
+    function addUserMessage(text) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user-message';
+        messageDiv.innerHTML = `
+            <img src="https://via.placeholder.com/40/95EC69/FFFFFF?text=You" class="avatar" alt="用户头像">
+            <div class="message-content">
+                <div class="nickname">你</div>
+                <div class="bubble user-bubble">${text}</div>
+            </div>
+        `;
+        chatContainer.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    // 添加机器人消息
+    function addBotMessage(html) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message bot-message';
+        messageDiv.innerHTML = `
+            <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar" alt="助手头像">
+            <div class="message-content">
+                <div class="nickname">网盘助手</div>
+                <div class="bubble bot-bubble">${html}</div>
+            </div>
+        `;
+        chatContainer.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    // 显示正在输入状态
+    function showTyping() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot-message';
+        typingDiv.innerHTML = `
+            <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar" alt="助手头像">
+            <div class="message-content">
+                <div class="nickname">网盘助手</div>
+                <div class="bubble bot-bubble">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
                     </div>
                 </div>
-            `;
-            chatContainer.appendChild(typingDiv);
-            scrollToBottom();
-            return typingDiv;
-        }
-        
-        // 滚动到底部
-        function scrollToBottom() {
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-        
-        // 渲染分页结果
-        function renderPaginatedResults() {
-            const start = (currentResultsPage - 1) * resultsPerPage;
-            const end = start + resultsPerPage;
-            const pageResults = currentResultsData.slice(start, end);
-            const totalPages = Math.ceil(currentResultsData.length / resultsPerPage);
-            
-     function renderPaginatedResults() {
+            </div>
+        `;
+        chatContainer.appendChild(typingDiv);
+        scrollToBottom();
+        return typingDiv;
+    }
+
+    // 滚动到底部
+    function scrollToBottom() {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // 渲染分页结果
+    function renderPaginatedResults() {
         const start = (currentResultsPage - 1) * resultsPerPage;
         const end = start + resultsPerPage;
         const pageResults = currentResultsData.slice(start, end);
         const totalPages = Math.ceil(currentResultsData.length / resultsPerPage);
 
-        // 渲染结果列表
+        // 处理文件名过长的情况
+        const maxLength = 20; // 最大长度
         const resultsHtml = pageResults.map(item => {
-            let网盘名称 = '未知网盘';
-            if (item.url.includes('pan.baidu.com')) {
-                网盘名称 = '百度网盘';
-            } else if (item.url.includes('aliyundrive.com')) {
-                网盘名称 = '阿里网盘';
-            } 
-            // 可以继续添加其他主流网盘的判断条件
+            let title = item.title;
+            if (title.length > maxLength) {
+                title = title.slice(0, maxLength) + '...';
+            }
 
             return `
                 <div class="result-item">
-                    <div class="result-title">${item.title || '未命名资源'} 
-                        <button class="网盘按钮">${网盘名称}</button>
-                    </div>
+                    <div class="result-title">${title}</div>
                     <div class="link-box">
                         <input type="text" value="${item.url}" readonly>
                         <button onclick="copyLink(this)">复制</button>
@@ -344,106 +335,105 @@
         return resultsHtml + paginationHtml;
     }
 
-        
-        // 处理搜索结果
-        function processSearchResults(data) {
-            if (!data.results || data.results.length === 0) {
-                return '<p>没有找到相关资源，请尝试其他关键词。</p>';
-            }
-            
-            currentResultsData = data.results.filter(item => item.valid !== false);
-            currentResultsPage = 1;
-            
-            if (currentResultsData.length === 0) {
-                return '<p>找到的资源链接已失效，请尝试其他关键词。</p>';
-            }
-            
-            return renderPaginatedResults();
+    // 处理搜索结果
+    function processSearchResults(data) {
+        if (!data.results || data.results.length === 0) {
+            return '<p>没有找到相关资源，请尝试其他关键词。</p>';
         }
         
-        // 改变结果页码
-        function changeResultsPage(delta) {
-            const newPage = currentResultsPage + delta;
-            const totalPages = Math.ceil(currentResultsData.length / resultsPerPage);
+        currentResultsData = data.results.filter(item => item.valid !== false);
+        currentResultsPage = 1;
+        
+        if (currentResultsData.length === 0) {
+            return '<p>找到的资源链接已失效，请尝试其他关键词。</p>';
+        }
+        
+        return renderPaginatedResults();
+    }
+
+    // 改变结果页码
+    function changeResultsPage(delta) {
+        const newPage = currentResultsPage + delta;
+        const totalPages = Math.ceil(currentResultsData.length / resultsPerPage);
+        
+        if (newPage > 0 && newPage <= totalPages) {
+            currentResultsPage = newPage;
             
-            if (newPage > 0 && newPage <= totalPages) {
-                currentResultsPage = newPage;
-                
-                // 找到最后一个机器人消息（包含结果的）
-                const botMessages = document.querySelectorAll('.message.bot-message');
-                const lastBotMessage = botMessages[botMessages.length - 1];
-                
-                if (lastBotMessage) {
-                    const bubble = lastBotMessage.querySelector('.bubble');
-                    if (bubble) {
-                        bubble.innerHTML = renderPaginatedResults();
-                        scrollToBottom();
-                    }
+            // 找到最后一个机器人消息（包含结果的）
+            const botMessages = document.querySelectorAll('.message.bot-message');
+            const lastBotMessage = botMessages[botMessages.length - 1];
+            
+            if (lastBotMessage) {
+                const bubble = lastBotMessage.querySelector('.bubble');
+                if (bubble) {
+                    bubble.innerHTML = renderPaginatedResults();
+                    scrollToBottom();
                 }
             }
         }
+    }
+
+    // 复制链接
+    function copyLink(button) {
+        const input = button.parentElement.querySelector('input');
+        input.select();
+        document.execCommand('copy');
         
-        // 复制链接
-        function copyLink(button) {
-            const input = button.parentElement.querySelector('input');
-            input.select();
-            document.execCommand('copy');
+        button.textContent = '已复制';
+        setTimeout(() => {
+            button.textContent = '复制';
+        }, 2000);
+    }
+
+    // 发送搜索请求
+    async function sendSearchRequest(keyword) {
+        try {
+            const response = await fetch(`/api/search?q=${encodeURIComponent(keyword)}`);
             
-            button.textContent = '已复制';
-            setTimeout(() => {
-                button.textContent = '复制';
-            }, 2000);
-        }
-        
-        // 发送搜索请求
-        async function sendSearchRequest(keyword) {
-            try {
-                const response = await fetch(`/api/search?q=${encodeURIComponent(keyword)}`);
-                
-                if (!response.ok) {
-                    throw new Error(`请求失败: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                return processSearchResults(data);
-                
-            } catch (error) {
-                console.error('搜索出错:', error);
-                return `<p>搜索失败: ${error.message}</p>`;
+            if (!response.ok) {
+                throw new Error(`请求失败: ${response.status}`);
             }
+            
+            const data = await response.json();
+            return processSearchResults(data);
+            
+        } catch (error) {
+            console.error('搜索出错:', error);
+            return `<p>搜索失败: ${error.message}</p>`;
         }
+    }
+
+    // 处理发送消息
+    async function handleSendMessage() {
+        const keyword = chatInput.value.trim();
+        if (!keyword) return;
         
-        // 处理发送消息
-        async function handleSendMessage() {
-            const keyword = chatInput.value.trim();
-            if (!keyword) return;
-            
-            // 添加用户消息
-            addUserMessage(keyword);
-            chatInput.value = '';
-            
-            // 显示机器人正在输入
-            const typingElement = showTyping();
-            
-            // 发送请求并获取结果
-            const resultHtml = await sendSearchRequest(keyword);
-            
-            // 移除正在输入状态
-            chatContainer.removeChild(typingElement);
-            
-            // 添加机器人回复
-            addBotMessage(resultHtml);
-        }
+        // 添加用户消息
+        addUserMessage(keyword);
+        chatInput.value = '';
         
-        // 事件监听
-        sendButton.addEventListener('click', handleSendMessage);
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleSendMessage();
-        });
+        // 显示机器人正在输入
+        const typingElement = showTyping();
         
-        // 全局暴露分页函数
-        window.changeResultsPage = changeResultsPage;
-        window.copyLink = copyLink;
-    </script>
+        // 发送请求并获取结果
+        const resultHtml = await sendSearchRequest(keyword);
+        
+        // 移除正在输入状态
+        chatContainer.removeChild(typingElement);
+        
+        // 添加机器人回复
+        addBotMessage(resultHtml);
+    }
+
+    // 事件监听
+    sendButton.addEventListener('click', handleSendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleSendMessage();
+    });
+
+    // 全局暴露分页函数
+    window.changeResultsPage = changeResultsPage;
+    window.copyLink = copyLink;
+</script>
 </body>
 </html>
