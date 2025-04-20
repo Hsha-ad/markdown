@@ -225,35 +225,145 @@
 
  <!-- 只修改script部分，其他部分保持不变 -->
 <script>
-    // ... 其他代码保持不变 ...
-
     function processSearchResults(data) {
+        console.log("收到搜索结果:", data);  // 调试
+        
         let html = '';
         
         if (data.results && data.results.length > 0) {
+            html += `<div class="results-header">
+                <h4>找到 ${data.count} 个"${data.keyword}"相关资源</h4>
+                <small>耗时: ${data.time}</small>
+            </div>`;
+            
             html += `<div class="results-container">`;
             
             data.results.forEach((item, index) => {
+                const validClass = item.valid ? 'valid' : 'invalid';
+                const pwdInfo = item.password ? `密码: ${item.password}` : '无密码';
+                
                 html += `
-                <div class="result-item">
-                    <div class="result-title">${item.title || '未命名资源'}</div>
-                    <div class="result-source">来源: ${item.source}</div>
+                <div class="result-item ${validClass}">
+                    <div class="result-title" title="${item.title}">
+                        <span class="result-index">${index + 1}.</span>
+                        ${item.title}
+                    </div>
+                    <div class="result-meta">
+                        <span class="source">来源: ${item.source}</span>
+                        <span class="pwd">${pwdInfo}</span>
+                    </div>
                     <div class="result-actions">
-                        <a href="${item.url}" target="_blank" class="btn btn-primary">打开链接</a>
-                        <button onclick="copyLink('${item.url}')" class="btn btn-secondary">复制链接</button>
+                        <a href="${item.url}" target="_blank" class="btn btn-primary">
+                            <i class="icon-link"></i> 打开链接
+                        </a>
+                        <button onclick="copyLink('${item.url}')" class="btn btn-secondary">
+                            <i class="icon-copy"></i> 复制链接
+                        </button>
                     </div>
                 </div>`;
             });
             
             html += `</div>`;
         } else {
-            html = '<p>没有找到相关资源</p>';
+            html = `<div class="no-results">
+                <h4>没有找到"${data.keyword}"相关资源</h4>
+                ${data.debug ? `<div class="debug-info">${data.debug.message}</div>` : ''}
+            </div>`;
         }
         
         return html;
     }
-
-    // ... 其他代码保持不变 ...
 </script>
+
+<style>
+    .results-header {
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .result-item {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: #f9f9f9;
+        transition: all 0.3s ease;
+    }
+    
+    .result-item:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .result-item.valid {
+        border-left: 4px solid #28a745;
+    }
+    
+    .result-item.invalid {
+        border-left: 4px solid #dc3545;
+    }
+    
+    .result-title {
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 8px;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .result-index {
+        color: #6c757d;
+        margin-right: 8px;
+    }
+    
+    .result-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        color: #6c757d;
+        margin-bottom: 12px;
+    }
+    
+    .result-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 6px 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 30px;
+        color: #6c757d;
+    }
+    
+    .debug-info {
+        margin-top: 15px;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        font-size: 13px;
+    }
+</style>
 </body>
 </html>
