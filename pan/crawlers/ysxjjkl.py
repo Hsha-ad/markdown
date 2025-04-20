@@ -1,89 +1,60 @@
 import requests
 from bs4 import BeautifulSoup
 import re
-import sys
 from urllib.parse import quote
-from core.utils import check_valid
 
 def search_ysxjjkl(keyword):
-    """优化后的爬虫代码，增加重试机制和超时处理"""
+    url = f"https://ysxjjkl.souyisou.top/?search={quote(keyword)}"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+    
     try:
-        url = f"https://ysxjjkl.souyisou.top/?search={quote(keyword)}"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Referer': 'https://ysxjjkl.souyisou.top/',
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-        
-        print(f"[新版爬虫] 请求URL: {url}", file=sys.stderr)
-        
-        # 增加重试机制
-        for attempt in range(3):
-            try:
-                response = requests.get(url, headers=headers, timeout=(5, 15))
-                response.raise_for_status()
-                break
-            except requests.exceptions.RequestException as e:
-                if attempt == 2:
-                    raise
-                print(f"[重试 {attempt+1}/3] 请求失败: {str(e)}", file=sys.stderr)
-                continue
-        
+        response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.text, 'html.parser')
         results = []
         
-        # 优化解析逻辑
-        for item in soup.select('.resource-item, .search-result'):
+        # 修改解析逻辑，提取具体资源名称
+        for item in soup.select('.resource-item'):
             try:
-                title = (item.get('data-title') or 
-                        (item.select_one('.title, h3') and item.select_one('.title, h3').get_text(strip=True)) or
-                        "未命名资源")
+                # 优先获取标题元素
+                title_elem = item.select_one('.title, h3, .name')
+                title = title_elem.get_text(strip=True) if title_elem else "未命名资源"
                 
-                link = item.find('a', href=lambda x: x and ('pan.baidu.com' in x or 'aliyundrive.com' in x))
-                if not link or not link.get('href'):
+                # 获取网盘链接
+                link = item.find('a', href=True)
+                if not link:
                     continue
-                
+                    
+                # 获取密码（如果有）
                 pwd = None
-                pwd_btn = item.select_one('.pwd-btn, .copy-pwd')
-                if pwd_btn and pwd_btn.get('data-pwd'):
-                    pwd = pwd_btn['data-pwd']
-                else:
-                    pwd_text = item.select_one('.password:not(:empty)')
-                    if pwd_text:
-                        match = re.search(r'[a-zA-Z0-9]{4}', pwd_text.get_text())
-                        pwd = match.group() if match else None
+                pwd_elem = item.select_one('.pwd-btn, .copy-pwd, .password')
+                if pwd_elem and 'data-pwd' in pwd_elem.attrs:
+                    pwd = pwd_elem['data-pwd']
+                elif pwd_elem:
+                    match = re.search(r'[a-zA-Z0-9]{4}', pwd_elem.get_text())
+                    pwd = match.group() if match else None
                 
+                # 构建结果对象
                 result = {
-                    'title': title[:100],
+                    'title': title,  # 这里返回实际资源名称
                     'url': link['href'],
                     'source': '影视集结号',
                     'valid': bool(pwd)
                 }
                 
+                # 添加密码到URL（如果需要）
                 if pwd and 'pwd=' not in result['url']:
                     result['url'] += f"?pwd={pwd}" if '?' not in result['url'] else f"&pwd={pwd}"
                 
                 results.append(result)
                 
             except Exception as e:
-                print(f"[解析异常] {str(e)}", file=sys.stderr)
+                print(f"解析条目时出错: {e}")
                 continue
         
-        # 优化备用方案
-        if not results:
-            print("[警告] 主解析方案无结果，尝试备用方案", file=sys.stderr)
-            for a in soup.find_all('a', href=re.compile(r'pan\.baidu\.com/s/[^\s]+')):
-                href = a.get('href', '')
-                results.append({
-                    'title': a.get_text(strip=True) or "百度网盘资源",
-                    'url': href,
-                    'source': 'ysxjjkl',
-                    'valid': 'pwd=' in href
-                })
-        
-        print(f"[有效结果] 找到 {len(results)} 条资源", file=sys.stderr)
         return results
-
+        
     except Exception as e:
-        print(f"[爬虫崩溃] {str(e)}", file=sys.stderr)
+        print(f"爬取过程中出错: {e}")
         return []
