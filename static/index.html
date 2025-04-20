@@ -225,89 +225,35 @@
 
  <!-- 只修改script部分，其他部分保持不变 -->
 <script>
-    // 使用严格模式
-    'use strict';
-    
-    // 全局配置
-    const CONFIG = {
-        resultsPerPage: 5,
-        typingDuration: 1500,
-        maxRequestRetries: 2
-    };
-    
-    // 状态管理
-    const state = {
-        currentPage: 1,
-        resultsData: [],
-        isRequestPending: false
-    };
-    
-    // DOM加载完成后初始化
-    document.addEventListener('DOMContentLoaded', function() {
-        // 获取DOM元素
-        const chatInput = document.getElementById('chat-input');
-        const sendButton = document.getElementById('send-button');
-        const chatContainer = document.getElementById('chat-container');
+    // ... 其他代码保持不变 ...
+
+    function processSearchResults(data) {
+        let html = '';
         
-        // 事件监听
-        sendButton.addEventListener('click', handleSendMessage);
-        chatInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') handleSendMessage();
-        });
-        
-        // 初始滚动
-        scrollToBottom(chatContainer);
-    });
-    
-    // 处理发送消息
-    async function handleSendMessage() {
-        if (state.isRequestPending) return;
-        
-        const chatInput = document.getElementById('chat-input');
-        const keyword = chatInput.value.trim();
-        if (!keyword) return;
-        
-        try {
-            state.isRequestPending = true;
-            addUserMessage(keyword);
-            chatInput.value = '';
+        if (data.results && data.results.length > 0) {
+            html += `<div class="results-container">`;
             
-            const typingElement = showTyping();
-            const resultHtml = await fetchWithRetry(keyword);
+            data.results.forEach((item, index) => {
+                html += `
+                <div class="result-item">
+                    <div class="result-title">${item.title || '未命名资源'}</div>
+                    <div class="result-source">来源: ${item.source}</div>
+                    <div class="result-actions">
+                        <a href="${item.url}" target="_blank" class="btn btn-primary">打开链接</a>
+                        <button onclick="copyLink('${item.url}')" class="btn btn-secondary">复制链接</button>
+                    </div>
+                </div>`;
+            });
             
-            chatContainer.removeChild(typingElement);
-            addBotMessage(resultHtml);
-        } catch (error) {
-            console.error('搜索出错:', error);
-            addBotMessage(`<p style="color:red">搜索失败: ${error.message}</p>`);
-        } finally {
-            state.isRequestPending = false;
+            html += `</div>`;
+        } else {
+            html = '<p>没有找到相关资源</p>';
         }
+        
+        return html;
     }
-    
-    // 带重试的请求
-    async function fetchWithRetry(keyword, retries = CONFIG.maxRequestRetries) {
-        for (let i = 0; i <= retries; i++) {
-            try {
-                const response = await fetch(`/api/search?q=${encodeURIComponent(keyword)}`);
-                if (!response.ok) throw new Error(`HTTP错误: ${response.status}`);
-                
-                const data = await response.json();
-                if (data.error) throw new Error(data.error);
-                
-                return processSearchResults(data);
-            } catch (error) {
-                if (i === retries) throw error;
-                await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-            }
-        }
-    }
-    
-    // 其他工具函数保持不变...
-    
-    // 暴露全局函数
-    window.changeResultsPage = changeResultsPage;
-    window.copyLink = copyLink;
+
+    // ... 其他代码保持不变 ...
 </script>
 </body>
 </html>
