@@ -98,7 +98,7 @@ function copyLink(button) {
 // 发送搜索请求
 async function sendSearchRequest(keyword) {
     try {
-        const response = await fetch(`https://markdown-smoky-alpha.vercel.app/api/search?q=${encodeURIComponent(keyword)}`);
+        const response = await fetch(`/api/search?q=${encodeURIComponent(keyword)}`);
         
         if (!response.ok) {
             throw new Error(`请求失败: ${response.status}`);
