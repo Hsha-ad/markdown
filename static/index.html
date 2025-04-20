@@ -165,6 +165,31 @@
             0%, 60%, 100% { transform: translateY(0); }
             30% { transform: translateY(-5px); }
         }
+        /* 新增的分页样式 */
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .pagination-btn {
+            padding: 4px 8px;
+            background: #F5F5F5;
+            border: 1px solid #E5E5E5;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .pagination-info {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -203,6 +228,11 @@
         const sendButton = document.getElementById('send-button');
         const chatContainer = document.getElementById('chat-container');
         
+        // 分页相关变量
+        let currentResultsPage = 1;
+        let currentResultsData = [];
+        const resultsPerPage = 5;
+
         // 添加用户消息
         function addUserMessage(text) {
             const messageDiv = document.createElement('div');
@@ -260,18 +290,15 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
         
-        // 处理搜索结果
-        function processSearchResults(data) {
-            if (!data.results || data.results.length === 0) {
-                return '<p>没有找到相关资源，请尝试其他关键词。</p>';
-            }
+        // 渲染分页结果
+        function renderPaginatedResults() {
+            const start = (currentResultsPage - 1) * resultsPerPage;
+            const end = start + resultsPerPage;
+            const pageResults = currentResultsData.slice(start, end);
+            const totalPages = Math.ceil(currentResultsData.length / resultsPerPage);
             
-            const validResults = data.results.filter(item => item.valid !== false);
-            if (validResults.length === 0) {
-                return '<p>找到的资源链接已失效，请尝试其他关键词。</p>';
-            }
-            
-            return validResults.map(item => `
+            // 渲染结果列表
+            const resultsHtml = pageResults.map(item => `
                 <div class="result-item">
                     <div class="result-title">${item.title || '未命名资源'} 
                         <small style="color: #888;">来自 ${item.source || '未知来源'}</small>
@@ -282,6 +309,61 @@
                     </div>
                 </div>
             `).join('');
+            
+            // 添加分页控制
+            const paginationHtml = `
+                <div class="pagination-controls">
+                    <button class="pagination-btn" onclick="changeResultsPage(-1)" ${currentResultsPage <= 1 ? 'disabled' : ''}>
+                        上一页
+                    </button>
+                    <button class="pagination-btn" onclick="changeResultsPage(1)" ${end >= currentResultsData.length ? 'disabled' : ''}>
+                        下一页
+                    </button>
+                </div>
+                <div class="pagination-info">
+                    第 ${currentResultsPage}/${totalPages} 页 (共 ${currentResultsData.length} 条结果)
+                </div>
+            `;
+            
+            return resultsHtml + paginationHtml;
+        }
+        
+        // 处理搜索结果
+        function processSearchResults(data) {
+            if (!data.results || data.results.length === 0) {
+                return '<p>没有找到相关资源，请尝试其他关键词。</p>';
+            }
+            
+            currentResultsData = data.results.filter(item => item.valid !== false);
+            currentResultsPage = 1;
+            
+            if (currentResultsData.length === 0) {
+                return '<p>找到的资源链接已失效，请尝试其他关键词。</p>';
+            }
+            
+            return renderPaginatedResults();
+        }
+        
+        // 改变结果页码
+        function changeResultsPage(delta) {
+            const newPage = currentResultsPage + delta;
+            const totalPages = Math.ceil(currentResultsData.length / resultsPerPage);
+            
+            if (newPage > 0 && newPage <= totalPages) {
+                currentResultsPage = newPage;
+                
+                // 找到最后一个机器人消息（包含结果的）
+                const botMessages = document.querySelectorAll('.message.bot-message');
+                const lastBotMessage = botMessages[botMessages.length - 1];
+                
+                if (lastBotMessage) {
+                    const bubble = lastBotMessage.querySelector('.bubble');
+                    if (bubble) {
+                        bubble.innerHTML = renderPaginatedResults();
+                        scrollToBottom();
+                    }
+                }
+            }
         }
         
         // 复制链接
@@ -341,6 +423,10 @@
         chatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleSendMessage();
         });
+        
+        // 全局暴露分页函数
+        window.changeResultsPage = changeResultsPage;
+        window.copyLink = copyLink;
     </script>
 </body>
 </html>
