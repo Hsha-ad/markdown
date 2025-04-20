@@ -1,11 +1,5 @@
-import requests
-from bs4 import BeautifulSoup
-import re
-import sys
-from urllib.parse import quote
-
 def search_ysxjjkl(keyword):
-    """改进版爬虫，支持返回相关衍生资源"""
+    """修复版爬虫，确保能返回所有相关资源"""
     try:
         url = f"https://ysxjjkl.souyisou.top/?search={quote(keyword)}"
         headers = {
@@ -20,15 +14,15 @@ def search_ysxjjkl(keyword):
         soup = BeautifulSoup(response.text, 'html.parser')
         results = []
         
-        # 解析所有资源项，包括主资源和相关资源
+        # 解析所有资源项
         for item in soup.select('.resource-item, .search-result, .related-item'):
             try:
                 # 提取完整标题（保留原标题不做修改）
                 title = item.select_one('.title, h3, .file-name').get_text(strip=True)
                 
-                # 跳过不包含关键词的完全不相关结果
-                if not re.search(r'狂飙|风暴|短剧|打工人', title, re.IGNORECASE):
-                    continue
+                # 移除关键词过滤条件（这是导致找不到资源的原因）
+                # if not re.search(r'狂飙|风暴|短剧|打工人', title, re.IGNORECASE):
+                #     continue
                 
                 # 提取网盘链接
                 link = item.find('a', href=lambda x: x and ('pan.baidu.com' in x or 'aliyundrive.com' in x))
@@ -46,14 +40,17 @@ def search_ysxjjkl(keyword):
                         pwd_match = re.search(r'[a-zA-Z0-9]{4}', pwd_text.get_text())
                         pwd = pwd_match.group() if pwd_match else None
                 
+                # 判断是否为精准匹配
+                is_main = keyword.lower() in title.lower()
+                
                 # 构建结果对象
                 result = {
-                    'title': title,  # 保留原标题不做修改
+                    'title': title,
                     'url': link['href'],
                     'source': '影视集结号',
                     'password': pwd or '1234',
                     'valid': bool(pwd),
-                    'type': 'related' if 'related' in item.get('class', []) else 'main'
+                    'type': 'main' if is_main else 'related'
                 }
                 
                 results.append(result)
@@ -62,10 +59,10 @@ def search_ysxjjkl(keyword):
                 print(f"[解析异常] {str(e)}", file=sys.stderr)
                 continue
         
-        # 按相关性排序：完全匹配的在前，相关资源在后
+        # 按相关性排序：精准匹配在前，相关资源在后
         results.sort(key=lambda x: (x['type'] == 'main', x['title']))
         
-        return results
+        return results if results else []
 
     except Exception as e:
         print(f"[爬虫崩溃] {str(e)}", file=sys.stderr)
