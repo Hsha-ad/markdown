@@ -1,0 +1,20 @@
+{
+    "name": "网盘资源助手",
+    "short_name": "网盘助手",
+    "icons": [
+        {
+            "src": "/static/icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#EDEDED",
+    "theme_color": "#07C160"
+}

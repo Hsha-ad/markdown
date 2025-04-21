@@ -56,7 +56,11 @@
                 <div class="bubble user-bubble">${text}</div>
             </div>
         `;
+        messageDiv.style.opacity = 0;
         chatContainer.appendChild(messageDiv);
+        setTimeout(() => {
+            messageDiv.style.opacity = 1;
+        }, 100);
         scrollToBottom();
     }
 
@@ -70,7 +74,11 @@
                 <div class="bubble bot-bubble">${html}</div>
             </div>
         `;
+        messageDiv.style.opacity = 0;
         chatContainer.appendChild(messageDiv);
+        setTimeout(() => {
+            messageDiv.style.opacity = 1;
+        }, 100);
         scrollToBottom();
     }
 
