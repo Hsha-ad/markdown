@@ -108,11 +108,50 @@
             }
 
             return `
-                <div class="result-item">
-                    <div class="result-title">${title}</div>
-                    <div class="link-box">
-                        <input type="text" value="${item.url}" readonly>
-                        <button onclick="copyLink(this)">复制</button>
+                <div class="result-card">
+                    <div class="result-card-header">
+                        <div class="result-card-title">🎬 《${title}》</div>
+                        <div class="result-card-rating">★ 8.8/10 (豆瓣)</div>
+                    </div>
+                    <div class="result-card-poster" style="background-image: url('https://via.placeholder.com/100x150')"></div>
+                    <div class="result-card-info">
+                        <div class="result-card-row">
+                            <div class="result-card-label">导演:</div>
+                            <div class="result-card-value">克里斯托弗·诺兰</div>
+                        </div>
+                        <div class="result-card-row">
+                            <div class="result-card-label">📅 上映日期:</div>
+                            <div class="result-card-value">2023-08-30</div>
+                        </div>
+                        <div class="result-card-row">
+                            <div class="result-card-label">🕒 片长:</div>
+                            <div class="result-card-value">180 分钟</div>
+                        </div>
+                    </div>
+                    <div class="result-card-radar">
+                        <div class="result-card-row">
+                            <div class="result-card-label">画质</div>
+                            <div class="result-card-value">▰▰▰▰▰</div>
+                            <div class="result-card-label">速度</div>
+                            <div class="result-card-value">▰▰▰▱▱</div>
+                        </div>
+                        <div class="result-card-row">
+                            <div class="result-card-label">字幕</div>
+                            <div class="result-card-value">▰▰▰▰▱</div>
+                            <div class="result-card-label">稳定</div>
+                            <div class="result-card-value">▰▰▰▰▱</div>
+                        </div>
+                    </div>
+                    <div class="result-card-resource">
+                        <h4>🟢 在线观看</h4>
+                        <ul>
+                            <li>▪️ Netflix (需VPN)</li>
+                            <li>▪️ 腾讯视频 (VIP专享)</li>
+                        </ul>
+                        <h4>🟠 网盘资源</h4>
+                        <ul>
+                            <li>▪️ 阿里云 (密码:6x8h) 4K HDR</li>
+                        </ul>
                     </div>
                 </div>
             `;
