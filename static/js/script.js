@@ -1,16 +1,13 @@
 (function() {
-    let chatInput, sendButton, chatContainer;
+    let chatInput, sendButton, resultContainer, pagination;
+    let currentPage = 0;
+    let allResults = [];
 
     document.addEventListener('DOMContentLoaded', function() {
         chatInput = document.getElementById('chat-input');
         sendButton = document.getElementById('send-button');
-        chatContainer = document.getElementById('chat-container');
-
-        // 检查是否成功获取到元素
-        if (!chatContainer) {
-            console.error('无法获取聊天容器元素');
-            return;
-        }
+        resultContainer = document.getElementById('result-container');
+        pagination = document.getElementById('pagination');
 
         if (sendButton && chatInput) {
             sendButton.addEventListener('click', handleSendMessage);
@@ -18,68 +15,70 @@
                 if (e.key === 'Enter') handleSendMessage();
             });
         }
-
-        scrollToBottom();
     });
 
     function handleSendMessage() {
         const keyword = chatInput.value.trim();
         if (!keyword) return;
 
-        addUserMessage(keyword);
-        const typingElement = showTyping();
-
         fetch(`/api/search?q=${encodeURIComponent(keyword)}`)
            .then(response => response.json())
            .then(data => {
-                if (chatContainer.contains(typingElement)) {
-                    chatContainer.removeChild(typingElement);
-                }
-                addBotMessage(processSearchResults(data));
+                allResults = data.results;
+                currentPage = 0;
+                showResults();
             })
            .catch(error => {
                 console.error('搜索失败:', error);
-                if (chatContainer.contains(typingElement)) {
-                    chatContainer.removeChild(typingElement);
-                }
-                addBotMessage(`<p style="color:red">请求失败: ${error.message}</p>`);
+                resultContainer.innerHTML = `<p style="color:red">请求失败: ${error.message}</p>`;
             });
 
         chatInput.value = '';
     }
 
-    function addUserMessage(text) {
-        if (!chatContainer) return; // 检查 chatContainer 是否为 null
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message', 'user-message');
-        messageDiv.textContent = text;
-        chatContainer.appendChild(messageDiv);
-        scrollToBottom();
-    }
+    function showResults() {
+        resultContainer.innerHTML = '';
+        pagination.innerHTML = '';
 
-    function addBotMessage(html) {
-        if (!chatContainer) return; // 检查 chatContainer 是否为 null
-        const messageDiv = document.createElement('div');
-        messageDiv.innerHTML = html;
-        chatContainer.appendChild(messageDiv);
-        scrollToBottom();
-    }
+        if (allResults.length === 0) {
+            resultContainer.innerHTML = '<p>没有找到相关资源</p>';
+            return;
+        }
 
-    function showTyping() {
-        if (!chatContainer) return; // 检查 chatContainer 是否为 null
-        const typingDiv = document.createElement('div');
-        typingDiv.classList.add('message', 'bot-message', 'typing');
-        typingDiv.textContent = '正在搜索，请稍候...';
-        chatContainer.appendChild(typingDiv);
-        scrollToBottom();
-        return typingDiv;
+        const currentResult = allResults[currentPage];
+        const card = document.createElement('div');
+        card.classList.add('result-card', 'active');
+        card.innerHTML = processSearchResults([currentResult]);
+        resultContainer.appendChild(card);
+
+        if (allResults.length > 1) {
+            const prevButton = document.createElement('button');
+            prevButton.textContent = '←';
+            prevButton.addEventListener('click', () => {
+                if (currentPage > 0) {
+                    currentPage--;
+                    showResults();
+                }
+            });
+            pagination.appendChild(prevButton);
+
+            const nextButton = document.createElement('button');
+            nextButton.textContent = '→';
+            nextButton.addEventListener('click', () => {
+                if (currentPage < allResults.length - 1) {
+                    currentPage++;
+                    showResults();
+                }
+            });
+            pagination.appendChild(nextButton);
+        }
     }
 
     function processSearchResults(data) {
-        if (!data.results || data.results.length === 0) {
+        if (!data || data.length === 0) {
             return '<p>没有找到相关资源</p>';
         }
-        return data.results.map(item => {
+        return data.map(item => {
             const maxLength = 20;
             let title = item.title;
             if (title.length > maxLength) {
@@ -136,16 +135,4 @@
             `;
         }).join('');
     }
-
-    function scrollToBottom() {
-        if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    window.copyLink = function(button) {
-        const input = button.parentElement.querySelector('input');
-        input.select();
-        document.execCommand('copy');
-        button.textContent = '已复制';
-        setTimeout(() => button.textContent = '复制', 2000);
-    };
 })();
