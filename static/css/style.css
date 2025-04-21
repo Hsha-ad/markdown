@@ -1,8 +1,8 @@
 :root {
-    --bg-color: #f4f4f9; /* 低饱和度背景色 */
+    --bg-color: #f4f4f9;
     --text-color: #333;
-    --primary-color: #64b5f6; /* 低饱和度主色调蓝色 */
-    --accent-color: #ffb74d; /* 亮色点缀橙色 */
+    --primary-color: #64b5f6;
+    --accent-color: #ffb74d;
     --card-bg: #ffffff;
     --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -30,7 +30,7 @@ body {
     flex-direction: column;
 }
 
-.header {
+.chat-header {
     background: var(--primary-color);
     color: white;
     padding: 20px;
@@ -39,8 +39,72 @@ body {
     border-top-right-radius: 16px;
 }
 
-.search-container {
+.chat-container {
+    flex: 1;
+    overflow-y: auto;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    display: flex;
+    margin-bottom: 15px;
+    max-width: 80%;
+}
+
+.user-message {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.bot-message {
+    align-self: flex-start;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    margin: 0 8px;
+    object-fit: cover;
+}
+
+.message-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.nickname {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.bubble {
+    padding: 10px 15px;
+    border-radius: 4px;
+    position: relative;
+    word-break: break-word;
+}
+
+.user-bubble {
+    background: var(--accent-color);
+    border-top-right-radius: 0;
+    color: white;
+}
+
+.bot-bubble {
+    background: #e0f7fa;
+    border-top-left-radius: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.input-container {
+    padding: 10px;
+    background: var(--primary-color);
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
     display: flex;
     gap: 10px;
 }
@@ -67,92 +131,41 @@ body {
     background: #ffa726;
 }
 
-.chat-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-}
-
-.welcome-message {
-    background: #e0f7fa;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.result-card {
-    background: var(--card-bg);
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-    margin: 10px 0;
-    padding: 15px;
-    position: relative;
-    overflow: hidden;
-}
-
-.result-card-header {
+.typing-indicator {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
-.result-card-title {
-    font-size: 18px;
-    font-weight: bold;
-    color: var(--primary-color);
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background: #CCC;
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: typing 1.4s infinite ease-in-out;
 }
 
-.result-card-rating {
-    font-size: 14px;
-    color: #888;
+.typing-dot:nth-child(1) {
+    animation-delay: 0s;
 }
 
-.result-card-poster {
-    width: 100px;
-    height: 150px;
-    background: #ccc;
-    margin-right: 15px;
-    float: left;
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
 }
 
-.result-card-info {
-    display: flex;
-    flex-direction: column;
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
 }
 
-.result-card-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-}
+@keyframes typing {
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+    }
 
-.result-card-label {
-    font-weight: bold;
-}
-
-.result-card-value {
-    color: #555;
-}
-
-.result-card-radar {
-    margin-top: 10px;
-    border-top: 1px solid #ddd;
-    padding-top: 10px;
-}
-
-.result-card-resource {
-    margin-top: 10px;
-    border-top: 1px solid #ddd;
-    padding-top: 10px;
-}
-
-.result-card-resource ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-
-.result-card-resource li {
-    margin-bottom: 5px;
+    30% {
+        transform: translateY(-5px);
+    }
 }
