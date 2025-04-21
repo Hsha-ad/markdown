@@ -5,11 +5,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const chatContainer = document.getElementById('chat-container');
 
     sendButton.addEventListener('click', function () {
+        console.log('点击事件已触发');  // 确认点击事件是否被触发
         const keyword = chatInput.value.trim();
         if (keyword) {
             // 调用后端 API
             fetch(`/api/search?q=${encodeURIComponent(keyword)}`)
-              .then(response => response.json())
+              .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
               .then(data => {
                     if (data.success) {
                         // 显示搜索结果
@@ -19,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             message.classList.add('message', 'bot-message');
                             message.innerHTML = `
                                 <div class="bubble bot-bubble">
-                                    ${result}
+                                    ${result.title}: <a href="${result.url}" target="_blank">${result.url}</a>
                                 </div>
                             `;
                             chatContainer.appendChild(message);
