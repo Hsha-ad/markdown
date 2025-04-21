@@ -18,6 +18,7 @@ def search_ysxjjkl(keyword):
         print(f"[新版爬虫] 请求URL: {url}", file=sys.stderr)
         response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
+        print(f"[新版爬虫] 响应状态码: {response.status_code}", file=sys.stderr)
 
         soup = BeautifulSoup(response.text, 'html.parser')
         results = []
@@ -52,9 +53,7 @@ def search_ysxjjkl(keyword):
                 if pwd and 'pwd=' not in result['url']:
                     result['url'] += f"?pwd={pwd}" if '?' not in result['url'] else f"&pwd={pwd}"
 
-                # 检查链接有效性
                 result['valid'] = check_valid(result['url'])
-
                 results.append(result)
 
             except Exception as e:
