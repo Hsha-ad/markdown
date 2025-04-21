@@ -54,7 +54,7 @@ def api_search():
         })
     except Exception as e:
         logging.error(f"Error in api_search: {e}")
-        return jsonify({"error": "Internal server error"}), 500
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 def search_bing(keyword):
     url = f"https://www.bing.com/search?q={keyword}"
@@ -62,6 +62,7 @@ def search_bing(keyword):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
     try:
         response = requests.get(url, headers=headers)
+        response.raise_for_status()  # 检查请求是否成功
         return response.text
     except Exception as e:
         logging.error(f"Error in search_bing: {e}")
