@@ -1,7 +1,8 @@
 # server.py
 from flask import Flask, send_from_directory, request, jsonify
 from pan.routes import init_pan_routes
-import requests
+import asyncio
+import aiohttp
 from bs4 import BeautifulSoup
 import logging
 
@@ -31,20 +32,21 @@ def serve_static(path):
         return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/api/search')
-def api_search():
+async def api_search():
     try:
         keyword = request.args.get('q', '').strip()
         if not keyword:
             return jsonify({"error": "关键词不能为空"}), 400
 
-        # 在必应搜索
-        bing_results = search_bing(keyword)
+        # 异步在必应搜索
+        bing_results = await search_bing(keyword)
         movie_titles = extract_movie_titles(bing_results)
 
         all_results = []
-        from pan.crawlers.ysxjjkl import search_ysxjjkl
-        for title in movie_titles:
-            results = search_ysxjjkl(title)
+        from pan.crawlers.ysxjjkl import search_ysxjjkl_async
+        tasks = [search_ysxjjkl_async(title) for title in movie_titles]
+        results_list = await asyncio.gather(*tasks)
+        for results in results_list:
             all_results.extend(results)
 
         return jsonify({
@@ -56,16 +58,18 @@ def api_search():
         logging.error(f"Error in api_search: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
-def search_bing(keyword):
+async def search_bing(keyword):
     url = f"https://www.bing.com/search?q={keyword}"
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
-    try:
-        response = requests.get(url, headers=headers)
-        return response.text
-    except Exception as e:
-        logging.error(f"Error in search_bing: {e}")
-        return ""
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(url, headers=headers) as response:
+                return await response.text()
+        except Exception as e:
+            logging.error(f"Error in search_bing: {e}")
+            return ""
 
 def extract_movie_titles(html):
     soup = BeautifulSoup(html, 'html.parser')
@@ -76,4 +80,5 @@ def extract_movie_titles(html):
     return titles
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    import asyncio
+    asyncio.run(app.run(port=5000))
