@@ -36,43 +36,44 @@
         chatInput.value = '';
     }
 
-    function showResults() {
-        resultContainer.innerHTML = '';
-        pagination.innerHTML = '';
+function showResults() {
+    resultContainer.innerHTML = '';
+    pagination.innerHTML = '';
 
-        if (allResults.length === 0) {
-            resultContainer.innerHTML = '<p>没有找到相关资源</p>';
-            return;
-        }
-
-        const currentResult = allResults[currentPage];
-        const card = document.createElement('div');
-        card.classList.add('result-card', 'active');
-        card.innerHTML = processSearchResults([currentResult]);
-        resultContainer.appendChild(card);
-
-        if (allResults.length > 1) {
-            const prevButton = document.createElement('button');
-            prevButton.textContent = '←';
-            prevButton.addEventListener('click', () => {
-                if (currentPage > 0) {
-                    currentPage--;
-                    showResults();
-                }
-            });
-            pagination.appendChild(prevButton);
-
-            const nextButton = document.createElement('button');
-            nextButton.textContent = '→';
-            nextButton.addEventListener('click', () => {
-                if (currentPage < allResults.length - 1) {
-                    currentPage++;
-                    showResults();
-                }
-            });
-            pagination.appendChild(nextButton);
-        }
+    if (allResults.length === 0) {
+        resultContainer.innerHTML = '<p>没有找到相关资源</p>';
+        return;
     }
+
+    const currentResult = allResults[currentPage];
+    console.log('当前要显示的结果:', currentResult); // 添加日志
+    const card = document.createElement('div');
+    card.classList.add('result-card', 'active');
+    card.innerHTML = processSearchResults([currentResult]);
+    resultContainer.appendChild(card);
+
+    if (allResults.length > 1) {
+        const prevButton = document.createElement('button');
+        prevButton.textContent = '←';
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 0) {
+                currentPage--;
+                showResults();
+            }
+        });
+        pagination.appendChild(prevButton);
+
+        const nextButton = document.createElement('button');
+        nextButton.textContent = '→';
+        nextButton.addEventListener('click', () => {
+            if (currentPage < allResults.length - 1) {
+                currentPage++;
+                showResults();
+            }
+        });
+        pagination.appendChild(nextButton);
+    }
+}
 
     function processSearchResults(data) {
         if (!data || data.length === 0) {
