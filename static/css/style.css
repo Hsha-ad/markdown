@@ -71,6 +71,8 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
 .welcome-message {
@@ -78,6 +80,24 @@ body {
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 20px;
+    align-self: center;
+}
+
+.message {
+    margin-bottom: 15px;
+    max-width: 80%;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.user-message {
+    background: #e0f7fa;
+    align-self: flex-end;
+}
+
+.bot-message {
+    background: #f1f8e9;
+    align-self: flex-start;
 }
 
 .result-card {
@@ -155,42 +175,4 @@ body {
 
 .result-card-resource li {
     margin-bottom: 5px;
-}
-
-/* 用户消息样式 */
-.message.user-message {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.message.user-message .avatar {
-    font-size: 20px;
-    color: #95EC69;
-    margin-right: 10px;
-}
-
-.message.user-message .message-content {
-    background-color: #e0f7fa;
-    padding: 10px;
-    border-radius: 8px;
-}
-
-/* 机器人消息样式 */
-.message.bot-message {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.message.bot-message .avatar {
-    font-size: 20px;
-    color: #07C160;
-    margin-right: 10px;
-}
-
-.message.bot-message .message-content {
-    background-color: #f1f8e9;
-    padding: 10px;
-    border-radius: 8px;
-}
+}    
