@@ -1,106 +1,89 @@
 :root {
-    --bg-color: #F5F5F5; /* 背景色，低饱和度灰色 */
-    --text-color: #333; /* 文字颜色 */
-    --primary-color: #64B5F6; /* 主色调，低饱和度蓝色 */
-    --user-bubble: #BBDEFB; /* 用户消息气泡颜色，低饱和度蓝色 */
-    --bot-bubble: #E0E0E0; /* 机器人消息气泡颜色，低饱和度灰色 */
-    --header-bg: #EEEEEE; /* 头部背景色，低饱和度灰色 */
-    --accent-color: #FFA726; /* 亮色点缀，橙色 */
+    --bg-color: #f4f4f9; /* 低饱和度背景色 */
+    --text-color: #333;
+    --primary-color: #64b5f6; /* 低饱和度主色调蓝色 */
+    --accent-color: #ffb74d; /* 亮色点缀橙色 */
+    --card-bg: #ffffff;
+    --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--bg-color);
     color: var(--text-color);
-    max-width: 500px;
-    margin: 0 auto;
+    margin: 0;
     padding: 0;
     height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.app-container {
+    width: 90%;
+    max-width: 600px;
+    height: 90vh;
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
 }
 
-.chat-header {
-    background: var(--header-bg);
-    padding: 15px;
+.header {
+    background: var(--primary-color);
+    color: white;
+    padding: 20px;
     text-align: center;
-    border-bottom: 1px solid #E5E5E5;
-    font-weight: 500;
-    position: relative;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
 }
 
-.chat-header .back-btn {
-    position: absolute;
-    left: 15px;
-    top: 15px;
-    font-size: 20px;
-    color: var(--primary-color); /* 亮色点缀 */
+.search-container {
+    padding: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+#chat-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+}
+
+#send-button {
+    padding: 10px 20px;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+#send-button:hover {
+    background: #ffa726;
 }
 
 .chat-container {
     flex: 1;
     overflow-y: auto;
+    padding: 20px;
+}
+
+.welcome-message {
+    background: #e0f7fa;
     padding: 15px;
-    display: flex;
-    flex-direction: column;
-}
-
-.message {
-    display: flex;
-    margin-bottom: 15px;
-    max-width: 80%;
-}
-
-.user-message {
-    align-self: flex-end;
-    flex-direction: row-reverse;
-}
-
-.bot-message {
-    align-self: flex-start;
-}
-
-.avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 4px;
-    margin: 0 8px;
-    object-fit: cover;
-}
-
-.message-content {
-    display: flex;
-    flex-direction: column;
-}
-
-.nickname {
-    font-size: 12px;
-    color: #888;
-    margin-bottom: 5px;
-}
-
-.bubble {
-    padding: 10px 15px;
-    border-radius: 4px;
-    position: relative;
-    word-break: break-word;
-}
-
-.user-bubble {
-    background: var(--user-bubble);
-    border-top-right-radius: 0;
-}
-
-.bot-bubble {
-    background: var(--bot-bubble);
-    border-top-left-radius: 0;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
 }
 
 .result-card {
-    background: #FFFFFF;
+    background: var(--card-bg);
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow);
     margin: 10px 0;
     padding: 15px;
     position: relative;
@@ -117,7 +100,7 @@ body {
 .result-card-title {
     font-size: 18px;
     font-weight: bold;
-    color: var(--primary-color); /* 主色调 */
+    color: var(--primary-color);
 }
 
 .result-card-rating {
@@ -172,58 +155,4 @@ body {
 
 .result-card-resource li {
     margin-bottom: 5px;
-}
-
-.input-container {
-    padding: 10px;
-    background: var(--header-bg);
-    border-top: 1px solid #E5E5E5;
-    display: flex;
-    gap: 10px;
-}
-
-#chat-input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #DDD;
-    border-radius: 4px;
-    outline: none;
-}
-
-#send-button {
-    padding: 10px 15px;
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
-
-#send-button:hover {
-    background: var(--accent-color); /* 亮色点缀 */
-}
-
-.typing-indicator {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.typing-dot {
-    width: 8px;
-    height: 8px;
-    background: #CCC;
-    border-radius: 50%;
-    margin: 0 2px;
-    animation: typing 1.4s infinite ease-in-out;
-}
-
-.typing-dot:nth-child(1) { animation-delay: 0s; }
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes typing {
-    0%, 60%, 100% { transform: translateY(0); }
-    30% { transform: translateY(-5px); }
 }

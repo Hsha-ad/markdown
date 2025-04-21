@@ -10,31 +10,21 @@
 </head>
 
 <body>
-    <div class="chat-header">
-        <span class="back-btn">&lt;</span>
-        网盘资源助手
-    </div>
-    <div id="chat-container" class="chat-container">
-        <div class="message bot-message">
-            <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar" alt="助手头像">
-            <div class="message-content">
-                <div class="nickname">网盘助手</div>
-                <div class="bubble bot-bubble">
-                    你好！我是网盘资源助手，可以帮你查找各种网盘资源。<br>
-                    请输入你想搜索的资源名称，例如：<br>
-                    <em>"我是传奇 电影"</em> 或 <em>"Python编程入门"</em>
-                </div>
+    <div class="app-container">
+        <div class="header">
+            <h1>网盘资源助手</h1>
+        </div>
+        <div class="search-container">
+            <input type="text" id="chat-input" placeholder="输入你想搜索的资源..." autocomplete="off">
+            <button id="send-button">搜索</button>
+        </div>
+        <div id="chat-container" class="chat-container">
+            <div class="welcome-message">
+                <p>你好！我是网盘资源助手，可以帮你查找各种网盘资源。</p>
+                <p>请输入你想搜索的资源名称，例如：</p>
+                <em>"我是传奇 电影"</em> 或 <em>"Python编程入门"</em>
             </div>
         </div>
-    </div>
-    <div class="input-container">
-        <input 
-            type="text" 
-            id="chat-input" 
-            placeholder="输入你想搜索的资源..."
-            autocomplete="off"
-        >
-        <button id="send-button">发送</button>
     </div>
 </body>
 

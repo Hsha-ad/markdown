@@ -27,9 +27,6 @@
         const keyword = chatInput.value.trim();
         if (!keyword) return;
 
-        addUserMessage(keyword);
-        chatInput.value = '';
-
         const typingElement = showTyping();
 
         fetch(`/api/search?q=${encodeURIComponent(keyword)}`)
@@ -43,6 +40,8 @@
                 chatContainer.removeChild(typingElement);
                 addBotMessage(`<p style="color:red">请求失败: ${error.message}</p>`);
             });
+
+        chatInput.value = '';
     }
 
     // 其他工具函数（保持原有功能）
