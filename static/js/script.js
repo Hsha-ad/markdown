@@ -6,6 +6,12 @@
         sendButton = document.getElementById('send-button');
         chatContainer = document.getElementById('chat-container');
 
+        // 检查是否成功获取到元素
+        if (!chatContainer) {
+            console.error('无法获取聊天容器元素');
+            return;
+        }
+
         if (sendButton && chatInput) {
             sendButton.addEventListener('click', handleSendMessage);
             chatInput.addEventListener('keypress', function(e) {
@@ -43,6 +49,7 @@
     }
 
     function addUserMessage(text) {
+        if (!chatContainer) return; // 检查 chatContainer 是否为 null
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message', 'user-message');
         messageDiv.textContent = text;
@@ -51,6 +58,7 @@
     }
 
     function addBotMessage(html) {
+        if (!chatContainer) return; // 检查 chatContainer 是否为 null
         const messageDiv = document.createElement('div');
         messageDiv.innerHTML = html;
         chatContainer.appendChild(messageDiv);
@@ -58,6 +66,7 @@
     }
 
     function showTyping() {
+        if (!chatContainer) return; // 检查 chatContainer 是否为 null
         const typingDiv = document.createElement('div');
         typingDiv.classList.add('message', 'bot-message', 'typing');
         typingDiv.textContent = '正在搜索，请稍候...';
