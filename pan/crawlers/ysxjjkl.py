@@ -1,13 +1,12 @@
 # pan/crawlers/ysxjjkl.py
-import asyncio
-import aiohttp
+import requests
 from bs4 import BeautifulSoup
 import re
 import sys
 from urllib.parse import quote
 from core.utils import check_valid
 
-async def search_ysxjjkl_async(keyword):
+def search_ysxjjkl(keyword):
     try:
         url = f"https://ysxjjkl.souyisou.top/?search={quote(keyword)}"
         headers = {
@@ -17,12 +16,10 @@ async def search_ysxjjkl_async(keyword):
         }
 
         print(f"[新版爬虫] 请求URL: {url}", file=sys.stderr)
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers, timeout=15) as response:
-                response.raise_for_status()
-                html = await response.text()
+        response = requests.get(url, headers=headers, timeout=15)
+        response.raise_for_status()
 
-        soup = BeautifulSoup(html, 'html.parser')
+        soup = BeautifulSoup(response.text, 'html.parser')
         results = []
 
         for item in soup.select('.box'):
