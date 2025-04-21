@@ -1,44 +1,48 @@
 :root {
-    --bg-color: #EDEDED;
+    --bg-color: #f4f4f9;
     --text-color: #333;
-    --primary-color: #07C160;
-    --user-bubble: #95EC69;
-    --bot-bubble: #FFFFFF;
-    --header-bg: #F7F7F7;
+    --primary-color: #64b5f6;
+    --accent-color: #ffb74d;
+    --card-bg: #ffffff;
+    --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--bg-color);
     color: var(--text-color);
-    max-width: 500px;
-    margin: 0 auto;
+    margin: 0;
     padding: 0;
     height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.app-container {
+    width: 90%;
+    max-width: 600px;
+    height: 90vh;
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
 }
 
 .chat-header {
-    background: var(--header-bg);
-    padding: 15px;
+    background: var(--primary-color);
+    color: white;
+    padding: 20px;
     text-align: center;
-    border-bottom: 1px solid #E5E5E5;
-    font-weight: 500;
-    position: relative;
-}
-
-.chat-header .back-btn {
-    position: absolute;
-    left: 15px;
-    top: 15px;
-    font-size: 20px;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
 }
 
 .chat-container {
     flex: 1;
     overflow-y: auto;
-    padding: 15px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
 }
@@ -85,20 +89,89 @@ body {
 }
 
 .user-bubble {
-    background: var(--user-bubble);
+    background: var(--accent-color);
     border-top-right-radius: 0;
+    color: white;
 }
 
 .bot-bubble {
-    background: var(--bot-bubble);
+    background: #e0f7fa;
     border-top-left-radius: 0;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.result-card {
-    background: #F5F5F5;
+.input-container {
+    padding: 10px;
+    background: var(--primary-color);
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    display: flex;
+    gap: 10px;
+}
+
+#chat-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    outline: none;
+}
+
+#send-button {
+    padding: 10px 20px;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+#send-button:hover {
+    background: #ffa726;
+}
+
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background: #CCC;
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+
+    30% {
+        transform: translateY(-5px);
+    }
+}
+
+.result-card {
+    background: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
     margin: 10px 0;
     padding: 15px;
     position: relative;
@@ -115,6 +188,7 @@ body {
 .result-card-title {
     font-size: 18px;
     font-weight: bold;
+    color: var(--primary-color);
 }
 
 .result-card-rating {
@@ -169,53 +243,4 @@ body {
 
 .result-card-resource li {
     margin-bottom: 5px;
-}
-
-.input-container {
-    padding: 10px;
-    background: var(--header-bg);
-    border-top: 1px solid #E5E5E5;
-    display: flex;
-    gap: 10px;
-}
-
-#chat-input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #DDD;
-    border-radius: 4px;
-    outline: none;
-}
-
-#send-button {
-    padding: 10px 15px;
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.typing-indicator {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.typing-dot {
-    width: 8px;
-    height: 8px;
-    background: #CCC;
-    border-radius: 50%;
-    margin: 0 2px;
-    animation: typing 1.4s infinite ease-in-out;
-}
-
-.typing-dot:nth-child(1) { animation-delay: 0s; }
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes typing {
-    0%, 60%, 100% { transform: translateY(0); }
-    30% { transform: translateY(-5px); }
-}
+}    
