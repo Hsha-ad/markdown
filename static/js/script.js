@@ -1,4 +1,3 @@
-// static/js/script.js
 (function() {
     let chatInput, sendButton, chatContainer;
 

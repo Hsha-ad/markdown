@@ -1,4 +1,3 @@
-# pan/crawlers/ysxjjkl.py
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -24,10 +23,8 @@ def search_ysxjjkl(keyword):
 
         for item in soup.select('.box'):
             try:
-                # 提取标题
                 info_div = item.find('div', class_='info')
                 if info_div:
-                    # 获取链接前面的文本内容作为标题
                     title = info_div.contents[0].strip()
                 else:
                     title = "未命名资源"
