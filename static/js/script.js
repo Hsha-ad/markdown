@@ -1,12 +1,10 @@
 (function() {
-    let chatInput, sendButton, resourceContainer;
-    let currentIndex = 0;
-    let searchResults = [];
+    let chatInput, sendButton, chatContainer;
 
     document.addEventListener('DOMContentLoaded', function() {
         chatInput = document.getElementById('chat-input');
         sendButton = document.getElementById('send-button');
-        resourceContainer = document.getElementById('resource-container');
+        chatContainer = document.getElementById('chat-container');
 
         if (sendButton && chatInput) {
             sendButton.addEventListener('click', handleSendMessage);
@@ -14,53 +12,72 @@
                 if (e.key === 'Enter') handleSendMessage();
             });
         }
+
+        scrollToBottom();
     });
 
     function handleSendMessage() {
         const keyword = chatInput.value.trim();
         if (!keyword) return;
 
-        currentIndex = 0;
-        resourceContainer.innerHTML = '';
-        const loadingElement = showLoading();
+        addUserMessage(keyword);
+        const typingElement = showTyping();
 
         fetch(`/api/search?q=${encodeURIComponent(keyword)}`)
            .then(response => response.json())
            .then(data => {
-                resourceContainer.removeChild(loadingElement);
-                searchResults = data.results;
-                if (searchResults.length > 0) {
-                    showResultCards();
-                    setupSwipe();
-                } else {
-                    resourceContainer.innerHTML = '<p>没有找到相关资源</p>';
+                if (chatContainer.contains(typingElement)) {
+                    chatContainer.removeChild(typingElement);
                 }
+                addBotMessage(processSearchResults(data));
             })
            .catch(error => {
                 console.error('搜索失败:', error);
-                resourceContainer.removeChild(loadingElement);
-                resourceContainer.innerHTML = `<p style="color:red">请求失败: ${error.message}</p>`;
+                if (chatContainer.contains(typingElement)) {
+                    chatContainer.removeChild(typingElement);
+                }
+                addBotMessage(`<p style="color:red">请求失败: ${error.message}</p>`);
             });
 
         chatInput.value = '';
     }
 
-    function showLoading() {
-        const loadingDiv = document.createElement('div');
-        loadingDiv.textContent = '正在搜索，请稍候...';
-        resourceContainer.appendChild(loadingDiv);
-        return loadingDiv;
+    function addUserMessage(text) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', 'user-message');
+        messageDiv.textContent = text;
+        chatContainer.appendChild(messageDiv);
+        scrollToBottom();
     }
 
-    function showResultCards() {
-        searchResults.forEach((result, index) => {
+    function addBotMessage(html) {
+        const messageDiv = document.createElement('div');
+        messageDiv.innerHTML = html;
+        chatContainer.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    function showTyping() {
+        const typingDiv = document.createElement('div');
+        typingDiv.classList.add('message', 'bot-message', 'typing');
+        typingDiv.textContent = '正在搜索，请稍候...';
+        chatContainer.appendChild(typingDiv);
+        scrollToBottom();
+        return typingDiv;
+    }
+
+    function processSearchResults(data) {
+        if (!data.results || data.results.length === 0) {
+            return '<p>没有找到相关资源</p>';
+        }
+        return data.results.map(item => {
             const maxLength = 20;
-            let title = result.title;
+            let title = item.title;
             if (title.length > maxLength) {
                 title = title.slice(0, maxLength) + '...';
             }
 
-            const cardHtml = `
+            return `
                 <div class="result-card">
                     <div class="result-card-header">
                         <div class="result-card-title">🎬 《${title}》</div>
@@ -108,53 +125,18 @@
                     </div>
                 </div>
             `;
-            const card = document.createElement('div');
-            card.innerHTML = cardHtml;
-            resourceContainer.appendChild(card.firstChild);
-        });
-
-        if (searchResults.length > 0) {
-            const firstCard = resourceContainer.querySelector('.result-card');
-            firstCard.classList.add('active');
-        }
+        }).join('');
     }
 
-    function setupSwipe() {
-        let startX = 0;
-
-        resourceContainer.addEventListener('touchstart', function(e) {
-            startX = e.touches[0].clientX;
-        });
-
-        resourceContainer.addEventListener('touchend', function(e) {
-            const endX = e.changedTouches[0].clientX;
-            const dx = endX - startX;
-
-            if (Math.abs(dx) > 50) {
-                if (dx > 0) {
-                    // 右滑
-                    if (currentIndex > 0) {
-                        const currentCard = resourceContainer.querySelectorAll('.result-card')[currentIndex];
-                        const prevCard = resourceContainer.querySelectorAll('.result-card')[currentIndex - 1];
-                        currentCard.classList.remove('active');
-                        currentCard.classList.add('prev');
-                        prevCard.classList.remove('prev');
-                        prevCard.classList.add('active');
-                        currentIndex--;
-                    }
-                } else {
-                    // 左滑
-                    if (currentIndex < searchResults.length - 1) {
-                        const currentCard = resourceContainer.querySelectorAll('.result-card')[currentIndex];
-                        const nextCard = resourceContainer.querySelectorAll('.result-card')[currentIndex + 1];
-                        currentCard.classList.remove('active');
-                        currentCard.classList.add('prev');
-                        nextCard.classList.remove('prev');
-                        nextCard.classList.add('active');
-                        currentIndex++;
-                    }
-                }
-            }
-        });
+    function scrollToBottom() {
+        if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
     }
+
+    window.copyLink = function(button) {
+        const input = button.parentElement.querySelector('input');
+        input.select();
+        document.execCommand('copy');
+        button.textContent = '已复制';
+        setTimeout(() => button.textContent = '复制', 2000);
+    };
 })();
