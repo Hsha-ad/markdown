@@ -31,14 +31,14 @@
         chatInput.value = '';
 
         const typingElement = showTyping();
-        
+
         fetch(`/api/search?q=${encodeURIComponent(keyword)}`)
-            .then(response => response.json())
-            .then(data => {
+           .then(response => response.json())
+           .then(data => {
                 chatContainer.removeChild(typingElement);
                 addBotMessage(processSearchResults(data));
             })
-            .catch(error => {
+           .catch(error => {
                 console.error('搜索失败:', error);
                 chatContainer.removeChild(typingElement);
                 addBotMessage(`<p style="color:red">请求失败: ${error.message}</p>`);
