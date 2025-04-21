@@ -18,7 +18,6 @@ def search_ysxjjkl(keyword):
         print(f"[新版爬虫] 请求URL: {url}", file=sys.stderr)
         response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
-        print(f"[新版爬虫] 响应状态码: {response.status_code}", file=sys.stderr)
 
         soup = BeautifulSoup(response.text, 'html.parser')
         results = []
@@ -53,7 +52,6 @@ def search_ysxjjkl(keyword):
                 if pwd and 'pwd=' not in result['url']:
                     result['url'] += f"?pwd={pwd}" if '?' not in result['url'] else f"&pwd={pwd}"
 
-                result['valid'] = check_valid(result['url'])
                 results.append(result)
 
             except Exception as e:
@@ -63,14 +61,12 @@ def search_ysxjjkl(keyword):
         if not results:
             print("[警告] 主解析方案无结果，尝试备用方案", file=sys.stderr)
             for a in soup.find_all('a', href=re.compile(r'pan\.baidu\.com/s/[^\s]+')):
-                result = {
+                results.append({
                     'title': a.get_text(strip=True) or "百度网盘资源",
                     'url': a['href'],
                     'source': 'ysxjjkl',
                     'valid': 'pwd=' in a['href']
-                }
-                result['valid'] = check_valid(result['url'])
-                results.append(result)
+                })
 
         print(f"[有效结果] 找到 {len(results)} 条资源", file=sys.stderr)
         return results
