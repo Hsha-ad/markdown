@@ -1,14 +1,10 @@
+# pan/crawlers/ysxjjkl.py
 import requests
 from bs4 import BeautifulSoup
 import re
 import sys
 from urllib.parse import quote
 from core.utils import check_valid
-import logging
-
-# 配置日志
-logging.basicConfig(level=logging.ERROR)
-logger = logging.getLogger(__name__)
 
 def search_ysxjjkl(keyword):
     try:
@@ -19,7 +15,7 @@ def search_ysxjjkl(keyword):
             'X-Requested-With': 'XMLHttpRequest'
         }
 
-        logger.info(f"[新版爬虫] 请求URL: {url}")
+        print(f"[新版爬虫] 请求URL: {url}", file=sys.stderr)
         response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
 
@@ -28,8 +24,10 @@ def search_ysxjjkl(keyword):
 
         for item in soup.select('.box'):
             try:
+                # 提取标题
                 info_div = item.find('div', class_='info')
                 if info_div:
+                    # 获取链接前面的文本内容作为标题
                     title = info_div.contents[0].strip()
                 else:
                     title = "未命名资源"
@@ -57,11 +55,11 @@ def search_ysxjjkl(keyword):
                 results.append(result)
 
             except Exception as e:
-                logger.error(f"[解析异常] {str(e)}", exc_info=True)
+                print(f"[解析异常] {str(e)}", file=sys.stderr)
                 continue
 
         if not results:
-            logger.warning("[警告] 主解析方案无结果，尝试备用方案")
+            print("[警告] 主解析方案无结果，尝试备用方案", file=sys.stderr)
             for a in soup.find_all('a', href=re.compile(r'pan\.baidu\.com/s/[^\s]+')):
                 results.append({
                     'title': a.get_text(strip=True) or "百度网盘资源",
@@ -70,12 +68,9 @@ def search_ysxjjkl(keyword):
                     'valid': 'pwd=' in a['href']
                 })
 
-        logger.info(f"[有效结果] 找到 {len(results)} 条资源")
+        print(f"[有效结果] 找到 {len(results)} 条资源", file=sys.stderr)
         return results
 
-    except requests.RequestException as e:
-        logger.error(f"[爬虫请求出错] {str(e)}", exc_info=True)
-        return []
     except Exception as e:
-        logger.error(f"[爬虫崩溃] {str(e)}", exc_info=True)
+        print(f"[爬虫崩溃] {str(e)}", file=sys.stderr)
         return []

@@ -24,19 +24,10 @@
         const typingElement = showTyping();
 
         fetch(`/api/search?q=${encodeURIComponent(keyword)}`)
-           .then(response => {
-                if (!response.ok) {
-                    throw new Error(`请求失败，状态码: ${response.status}`);
-                }
-                return response.json();
-            })
+           .then(response => response.json())
            .then(data => {
                 chatContainer.removeChild(typingElement);
-                if (data.error) {
-                    addBotMessage(`<p style="color:red">搜索失败: ${data.error}</p>`);
-                } else {
-                    addBotMessage(processSearchResults(data));
-                }
+                addBotMessage(processSearchResults(data));
             })
            .catch(error => {
                 console.error('搜索失败:', error);
@@ -144,4 +135,4 @@
         button.textContent = '已复制';
         setTimeout(() => button.textContent = '复制', 2000);
     };
-})();
+})();    
