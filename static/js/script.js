@@ -1,16 +1,11 @@
-// 使用立即执行函数隔离作用域
 (function() {
-    // 全局变量声明（只声明一次）
     let chatInput, sendButton, chatContainer;
 
-    // DOM加载完成后初始化
     document.addEventListener('DOMContentLoaded', function() {
-        // 获取DOM元素
         chatInput = document.getElementById('chat-input');
         sendButton = document.getElementById('send-button');
         chatContainer = document.getElementById('chat-container');
 
-        // 事件监听（确保元素存在）
         if (sendButton && chatInput) {
             sendButton.addEventListener('click', handleSendMessage);
             chatInput.addEventListener('keypress', function(e) {
@@ -18,19 +13,14 @@
             });
         }
 
-        // 初始化滚动条
         scrollToBottom();
     });
 
-    // 消息处理函数
     function handleSendMessage() {
         const keyword = chatInput.value.trim();
-        console.log('输入的关键词:', keyword);
         if (!keyword) return;
 
         addUserMessage(keyword);
-        chatInput.value = '';
-
         const typingElement = showTyping();
 
         fetch(`/api/search?q=${encodeURIComponent(keyword)}`)
@@ -44,53 +34,29 @@
                 chatContainer.removeChild(typingElement);
                 addBotMessage(`<p style="color:red">请求失败: ${error.message}</p>`);
             });
+
+        chatInput.value = '';
     }
 
-    // 其他工具函数（保持原有功能）
     function addUserMessage(text) {
         const messageDiv = document.createElement('div');
-        messageDiv.className = 'message user-message';
-        messageDiv.innerHTML = `
-            <img src="https://via.placeholder.com/40/95EC69/FFFFFF?text=You" class="avatar">
-            <div class="message-content">
-                <div class="nickname">你</div>
-                <div class="bubble user-bubble">${text}</div>
-            </div>
-        `;
+        messageDiv.classList.add('message', 'user-message');
+        messageDiv.textContent = text;
         chatContainer.appendChild(messageDiv);
         scrollToBottom();
     }
 
     function addBotMessage(html) {
         const messageDiv = document.createElement('div');
-        messageDiv.className = 'message bot-message';
-        messageDiv.innerHTML = `
-            <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar">
-            <div class="message-content">
-                <div class="nickname">网盘助手</div>
-                <div class="bubble bot-bubble">${html}</div>
-            </div>
-        `;
+        messageDiv.innerHTML = html;
         chatContainer.appendChild(messageDiv);
         scrollToBottom();
     }
 
     function showTyping() {
         const typingDiv = document.createElement('div');
-        typingDiv.className = 'message bot-message';
-        typingDiv.innerHTML = `
-            <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar">
-            <div class="message-content">
-                <div class="nickname">网盘助手</div>
-                <div class="bubble bot-bubble">
-                    <div class="typing-indicator">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                    </div>
-                </div>
-            </div>
-        `;
+        typingDiv.classList.add('message', 'bot-message', 'typing');
+        typingDiv.textContent = '正在搜索，请稍候...';
         chatContainer.appendChild(typingDiv);
         scrollToBottom();
         return typingDiv;
@@ -101,8 +67,7 @@
             return '<p>没有找到相关资源</p>';
         }
         return data.results.map(item => {
-            // 处理文件名过长的情况
-            const maxLength = 20; // 最大长度
+            const maxLength = 20;
             let title = item.title;
             if (title.length > maxLength) {
                 title = title.slice(0, maxLength) + '...';
@@ -163,7 +128,6 @@
         if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    // 暴露全局函数（解决第三方脚本冲突）
     window.copyLink = function(button) {
         const input = button.parentElement.querySelector('input');
         input.select();
@@ -171,4 +135,4 @@
         button.textContent = '已复制';
         setTimeout(() => button.textContent = '复制', 2000);
     };
-})();
+})();    
