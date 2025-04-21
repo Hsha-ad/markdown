@@ -1,31 +1,96 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"> <!-- 引入Poppins字体 -->
     <link rel="stylesheet" href="/static/css/style.css">
     <title>网盘资源助手</title>
     <script src="/static/js/script.js"></script>
+    <style>
+        :root {
+            --bg-color: #F5F5F5;
+            --text-color: #333;
+            --primary-color: #FF6B6B;
+            --user-bubble: #FFD166;
+            --bot-bubble: #FFFFFF;
+            --header-bg: #F7F7F7;
+            --typing-dot-color: #FF6B6B;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background: var(--header-bg);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #E5E5E5;
+            font-weight: 600;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .chat-header .back-btn {
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            font-size: 20px;
+            color: var(--primary-color);
+        }
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-color);
+        }
+    </style>
 </head>
-
 <body>
-    <div class="app-container">
-        <div class="header">
-            <h1>网盘资源助手</h1>
-        </div>
-        <div class="search-container">
-            <input type="text" id="chat-input" placeholder="输入你想搜索的资源..." autocomplete="off">
-            <button id="send-button">搜索</button>
-        </div>
-        <div id="chat-container" class="chat-container">
-            <div class="welcome-message">
-                <p>你好！我是网盘资源助手，可以帮你查找各种网盘资源。</p>
-                <p>请输入你想搜索的资源名称，例如：</p>
-                <em>"我是传奇 电影"</em> 或 <em>"Python编程入门"</em>
+    <div class="chat-header">
+        <span class="back-btn">&lt;</span>
+        网盘资源助手
+    </div>
+    <div id="chat-container" class="chat-container">
+        <div class="message bot-message">
+            <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar" alt="助手头像">
+            <div class="message-content">
+                <div class="nickname">网盘助手</div>
+                <div class="bubble bot-bubble">
+                    你好！我是网盘资源助手，可以帮你查找各种网盘资源。<br>
+                    请输入你想搜索的资源名称，例如：<br>
+                    <em>"我是传奇 电影"</em> 或 <em>"Python编程入门"</em>
+                </div>
             </div>
         </div>
     </div>
-</body>
+    <div class="input-container">
+        <input 
+            type="text" 
+            id="chat-input" 
+            placeholder="输入你想搜索的资源..."
+            autocomplete="off"
+        >
+        <button id="send-button">发送</button>
+    </div>
+    <script>
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+        const chatContainer = document.getElementById('chat-container');
 
-</html>    
+        // 事件监听
+        sendButton.addEventListener('click', handleSendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSendMessage();
+        });
+    </script>
+</body>
+</html>

@@ -1,115 +1,120 @@
 :root {
-    --bg-color: #f4f4f9; /* 低饱和度背景色 */
+    --bg-color: #F5F5F5; /* 背景颜色，使用更浅的灰色 */
     --text-color: #333;
-    --primary-color: #64b5f6; /* 低饱和度主色调蓝色 */
-    --accent-color: #ffb74d; /* 亮色点缀橙色 */
-    --card-bg: #ffffff;
-    --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --primary-color: #FF6B6B; /* 主色调，使用明亮的红色 */
+    --user-bubble: #FFD166; /* 用户消息气泡颜色，使用黄色 */
+    --bot-bubble: #FFFFFF;
+    --header-bg: #F7F7F7;
+    --typing-dot-color: #FF6B6B; /* 输入提示点的颜色 */
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Poppins', sans-serif; /* 使用更现代的字体 */
     background: var(--bg-color);
     color: var(--text-color);
-    margin: 0;
+    max-width: 500px;
+    margin: 0 auto;
     padding: 0;
     height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.app-container {
-    width: 90%;
-    max-width: 600px;
-    height: 90vh;
-    background: var(--card-bg);
-    border-radius: 16px;
-    box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
 }
 
-.header {
-    background: var(--primary-color);
-    color: white;
-    padding: 20px;
+.chat-header {
+    background: var(--header-bg);
+    padding: 15px;
     text-align: center;
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
+    border-bottom: 1px solid #E5E5E5;
+    font-weight: 600; /* 增加标题字体的粗细 */
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* 添加阴影效果 */
 }
 
-.search-container {
-    padding: 20px;
-    display: flex;
-    gap: 10px;
-}
-
-#chat-input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    outline: none;
-}
-
-#send-button {
-    padding: 10px 20px;
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
-
-#send-button:hover {
-    background: #ffa726;
+.chat-header .back-btn {
+    position: absolute;
+    left: 15px;
+    top: 15px;
+    font-size: 20px;
+    color: var(--primary-color); /* 后退按钮使用主色调 */
 }
 
 .chat-container {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
-}
-
-.welcome-message {
-    background: #e0f7fa;
     padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-color);
 }
 
 .message {
+    display: flex;
     margin-bottom: 15px;
-    border-radius: 8px;
-    padding: 10px;
-    display: inline-block; /* 使消息气泡宽度自适应内容 */
-    max-width: 80%; /* 最大宽度限制 */
+    max-width: 80%;
+    transition: all 0.3s ease; /* 添加过渡效果 */
 }
 
 .user-message {
-    background: #e0f7fa;
-    margin-left: auto;
-    display: table; /* 使消息气泡宽度自适应内容 */
+    align-self: flex-end;
+    flex-direction: row-reverse;
 }
 
 .bot-message {
-    background: #f1f8e9;
-    margin-right: auto;
-    display: table; /* 使消息气泡宽度自适应内容 */
+    align-self: flex-start;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%; /* 头像使用圆形 */
+    margin: 0 8px;
+    object-fit: cover;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 头像添加阴影效果 */
+}
+
+.message-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.nickname {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.bubble {
+    padding: 10px 15px;
+    border-radius: 12px; /* 气泡使用更圆润的边角 */
+    position: relative;
+    word-break: break-word;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* 气泡添加阴影效果 */
+}
+
+.user-bubble {
+    background: var(--user-bubble);
+    border-top-right-radius: 0;
+}
+
+.bot-bubble {
+    background: var(--bot-bubble);
+    border-top-left-radius: 0;
 }
 
 .result-card {
-    background: var(--card-bg);
-    border-radius: 8px;
-    box-shadow: var(--shadow);
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin: 10px 0;
     padding: 15px;
     position: relative;
     overflow: hidden;
-    width: auto; /* 让卡片宽度自适应 */
+    transition: all 0.3s ease; /* 添加过渡效果 */
+}
+
+.result-card:hover {
+    transform: translateY(-5px); /* 鼠标悬停时卡片向上移动 */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* 鼠标悬停时增加阴影效果 */
 }
 
 .result-card-header {
@@ -121,8 +126,7 @@ body {
 
 .result-card-title {
     font-size: 18px;
-    font-weight: bold;
-    color: var(--primary-color);
+    font-weight: 600;
 }
 
 .result-card-rating {
@@ -136,6 +140,7 @@ body {
     background: #ccc;
     margin-right: 15px;
     float: left;
+    border-radius: 8px; /* 海报使用圆角 */
 }
 
 .result-card-info {
@@ -150,7 +155,7 @@ body {
 }
 
 .result-card-label {
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .result-card-value {
@@ -177,4 +182,65 @@ body {
 
 .result-card-resource li {
     margin-bottom: 5px;
-}    
+}
+
+.input-container {
+    padding: 10px;
+    background: var(--header-bg);
+    border-top: 1px solid #E5E5E5;
+    display: flex;
+    gap: 10px;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05); /* 输入框容器添加阴影效果 */
+}
+
+#chat-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #DDD;
+    border-radius: 20px; /* 输入框使用圆角 */
+    outline: none;
+    transition: all 0.3s ease; /* 添加过渡效果 */
+}
+
+#chat-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 5px rgba(255, 107, 107, 0.5); /* 输入框聚焦时使用主色调阴影 */
+}
+
+#send-button {
+    padding: 10px 15px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 20px; /* 发送按钮使用圆角 */
+    cursor: pointer;
+    transition: all 0.3s ease; /* 添加过渡效果 */
+}
+
+#send-button:hover {
+    background: #FF8E8E; /* 鼠标悬停时发送按钮颜色变浅 */
+}
+
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--typing-dot-color); /* 输入提示点使用主色调 */
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-5px); }
+}
