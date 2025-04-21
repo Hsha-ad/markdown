@@ -17,33 +17,35 @@
     });
 
     function handleSendMessage() {
-        const keyword = chatInput.value.trim();
-        if (!keyword) return;
+    const keyword = chatInput.value.trim();
+    if (!keyword) return;
 
-        addUserMessage(keyword);
-        const typingElement = showTyping();
+    addUserMessage(keyword);
+    const typingElement = showTyping();
 
-        fetch(`/api/search?q=${encodeURIComponent(keyword)}`)
-           .then(response => response.json())
-           .then(data => {
-                chatContainer.removeChild(typingElement);
-                addBotMessage(processSearchResults(data));
-                // 添加资源卡片动画
-                const resultCards = document.querySelectorAll('.result-card');
-                resultCards.forEach((card, index) => {
-                    setTimeout(() => {
-                        card.classList.add('show');
-                    }, index * 200);
-                });
-            })
-           .catch(error => {
-                console.error('搜索失败:', error);
-                chatContainer.removeChild(typingElement);
-                addBotMessage(`<p style="color:red">请求失败: ${error.message}</p>`);
+    fetch(`/api/search?q=${encodeURIComponent(keyword)}`)
+       .then(response => response.json())
+       .then(data => {
+            chatContainer.removeChild(typingElement);
+            addBotMessage(processSearchResults(data));
+            // 添加调试信息
+            console.log('搜索结果:', data);
+            const resultCards = document.querySelectorAll('.result-card');
+            resultCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('show');
+                    console.log(`卡片 ${index + 1} 显示动画已触发`);
+                }, index * 200);
             });
+        })
+       .catch(error => {
+            console.error('搜索失败:', error);
+            chatContainer.removeChild(typingElement);
+            addBotMessage(`<p style="color:red">请求失败: ${error.message}</p>`);
+        });
 
-        chatInput.value = '';
-    }
+    chatInput.value = '';
+}
 
     function addUserMessage(text) {
         const messageDiv = document.createElement('div');
