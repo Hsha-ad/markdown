@@ -83,19 +83,22 @@ body {
 
 .message {
     margin-bottom: 15px;
-    max-width: 80%;
     border-radius: 8px;
     padding: 10px;
+    display: inline-block; /* 使消息气泡宽度自适应内容 */
+    max-width: 80%; /* 最大宽度限制 */
 }
 
 .user-message {
     background: #e0f7fa;
     margin-left: auto;
+    display: table; /* 使消息气泡宽度自适应内容 */
 }
 
 .bot-message {
     background: #f1f8e9;
     margin-right: auto;
+    display: table; /* 使消息气泡宽度自适应内容 */
 }
 
 .result-card {
