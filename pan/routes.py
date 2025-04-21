@@ -1,5 +1,10 @@
 from flask import request, jsonify
 from .services import search_pan_resources
+import logging
+
+# 配置日志
+logging.basicConfig(level=logging.ERROR)
+logger = logging.getLogger(__name__)
 
 def init_pan_routes(app):
     @app.route('/api/search')
@@ -15,4 +20,5 @@ def init_pan_routes(app):
                 "results": results
             })
         except Exception as e:
+            logger.error(f"[搜索出错] {str(e)}", exc_info=True)
             return jsonify({"error": f"搜索过程中出现错误: {str(e)}"}), 500
