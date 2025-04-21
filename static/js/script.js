@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const chatContainer = document.getElementById('chat-container');
 
     sendButton.addEventListener('click', function () {
-        console.log('点击事件已触发');  // 确认点击事件是否被触发
+        console.log('点击事件已触发');
         const keyword = chatInput.value.trim();
         if (keyword) {
             // 调用后端 API
@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     return response.json();
                 })
               .then(data => {
+                    console.log('后端返回的数据:', data);
                     if (data.success) {
                         // 显示搜索结果
                         const results = data.results;
