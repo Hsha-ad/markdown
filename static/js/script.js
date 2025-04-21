@@ -1,138 +1,93 @@
-(function() {
-    let chatInput, sendButton, chatContainer;
+// 获取 DOM 元素
+const chatContainer = document.getElementById('chat-container');
+const inputField = document.getElementById('input-field');
+const sendButton = document.getElementById('send-button');
 
-    document.addEventListener('DOMContentLoaded', function() {
-        chatInput = document.getElementById('chat-input');
-        sendButton = document.getElementById('send-button');
-        chatContainer = document.getElementById('chat-container');
+// 添加用户消息到聊天容器
+function addUserMessage(message) {
+    const userMessage = document.createElement('div');
+    userMessage.classList.add('user-message');
+    userMessage.textContent = message;
+    chatContainer.appendChild(userMessage);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
 
-        if (sendButton && chatInput) {
-            sendButton.addEventListener('click', handleSendMessage);
-            chatInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') handleSendMessage();
-            });
+// 添加机器人消息到聊天容器
+function addBotMessage(message) {
+    const botMessage = document.createElement('div');
+    botMessage.classList.add('bot-message');
+    botMessage.innerHTML = message;
+    chatContainer.appendChild(botMessage);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+// 显示加载提示
+function showLoading() {
+    const loadingMessage = document.createElement('div');
+    loadingMessage.classList.add('bot-message');
+    loadingMessage.textContent = '正在搜索，请稍候...';
+    chatContainer.appendChild(loadingMessage);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    return loadingMessage;
+}
+
+// 移除加载提示
+function removeLoading(loadingMessage) {
+    if (loadingMessage) {
+        chatContainer.removeChild(loadingMessage);
+    }
+}
+
+// 处理搜索请求
+async function searchResources(keyword) {
+    const loadingMessage = showLoading();
+    try {
+        const response = await fetch(`/pan/search?keyword=${encodeURIComponent(keyword)}`);
+        if (!response.ok) {
+            throw new Error('网络请求失败');
         }
+        const data = await response.json();
+        removeLoading(loadingMessage);
+        if (data.resources.length === 0) {
+            addBotMessage('未找到相关资源。');
+        } else {
+            let resultHtml = '<div class="search-results">';
+            data.resources.forEach((resource) => {
+                resultHtml += `
+                    <div class="result-card">
+                        <h3>${resource.title}</h3>
+                        <p><strong>链接:</strong> <a href="${resource.link}" target="_blank">${resource.link}</a></p>
+                        <p><strong>提取码:</strong> ${resource.extract_code}</p>
+                    </div>
+                `;
+            });
+            resultHtml += '</div>';
+            addBotMessage(resultHtml);
+        }
+    } catch (error) {
+        removeLoading(loadingMessage);
+        addBotMessage(`发生错误: ${error.message}`);
+    }
+}
 
-        scrollToBottom();
-    });
-
-    function handleSendMessage() {
-        const keyword = chatInput.value.trim();
-        if (!keyword) return;
-
+// 发送消息事件处理
+function sendMessage() {
+    const keyword = inputField.value.trim();
+    if (keyword) {
         addUserMessage(keyword);
-        const typingElement = showTyping();
-
-        fetch(`/api/search?q=${encodeURIComponent(keyword)}`)
-           .then(response => response.json())
-           .then(data => {
-                chatContainer.removeChild(typingElement);
-                addBotMessage(processSearchResults(data));
-            })
-           .catch(error => {
-                console.error('搜索失败:', error);
-                chatContainer.removeChild(typingElement);
-                addBotMessage(`<p style="color:red">请求失败: ${error.message}</p>`);
-            });
-
-        chatInput.value = '';
+        searchResources(keyword);
+        inputField.value = '';
     }
+}
 
-    function addUserMessage(text) {
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message', 'user-message');
-        messageDiv.textContent = text;
-        chatContainer.appendChild(messageDiv);
-        scrollToBottom();
+// 绑定事件
+sendButton.addEventListener('click', sendMessage);
+inputField.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        sendMessage();
     }
+});
 
-    function addBotMessage(html) {
-        const messageDiv = document.createElement('div');
-        messageDiv.innerHTML = html;
-        chatContainer.appendChild(messageDiv);
-        scrollToBottom();
-    }
-
-    function showTyping() {
-        const typingDiv = document.createElement('div');
-        typingDiv.classList.add('message', 'bot-message', 'typing');
-        typingDiv.textContent = '正在搜索，请稍候...';
-        chatContainer.appendChild(typingDiv);
-        scrollToBottom();
-        return typingDiv;
-    }
-
-    function processSearchResults(data) {
-        if (!data.results || data.results.length === 0) {
-            return '<p>没有找到相关资源</p>';
-        }
-        return data.results.map(item => {
-            const maxLength = 20;
-            let title = item.title;
-            if (title.length > maxLength) {
-                title = title.slice(0, maxLength) + '...';
-            }
-
-            return `
-                <div class="result-card">
-                    <div class="result-card-header">
-                        <div class="result-card-title">🎬 《${title}》</div>
-                        <div class="result-card-rating">★ 8.8/10 (豆瓣)</div>
-                    </div>
-                    <div class="result-card-poster" style="background-image: url('https://via.placeholder.com/100x150')"></div>
-                    <div class="result-card-info">
-                        <div class="result-card-row">
-                            <div class="result-card-label">导演:</div>
-                            <div class="result-card-value">克里斯托弗·诺兰</div>
-                        </div>
-                        <div class="result-card-row">
-                            <div class="result-card-label">📅 上映日期:</div>
-                            <div class="result-card-value">2023-08-30</div>
-                        </div>
-                        <div class="result-card-row">
-                            <div class="result-card-label">🕒 片长:</div>
-                            <div class="result-card-value">180 分钟</div>
-                        </div>
-                    </div>
-                    <div class="result-card-radar">
-                        <div class="result-card-row">
-                            <div class="result-card-label">画质</div>
-                            <div class="result-card-value">▰▰▰▰▰</div>
-                            <div class="result-card-label">速度</div>
-                            <div class="result-card-value">▰▰▰▱▱</div>
-                        </div>
-                        <div class="result-card-row">
-                            <div class="result-card-label">字幕</div>
-                            <div class="result-card-value">▰▰▰▰▱</div>
-                            <div class="result-card-label">稳定</div>
-                            <div class="result-card-value">▰▰▰▰▱</div>
-                        </div>
-                    </div>
-                    <div class="result-card-resource">
-                        <h4>🟢 在线观看</h4>
-                        <ul>
-                            <li>▪️ Netflix (需VPN)</li>
-                            <li>▪️ 腾讯视频 (VIP专享)</li>
-                        </ul>
-                        <h4>🟠 网盘资源</h4>
-                        <ul>
-                            <li>▪️ 阿里云 (密码:6x8h) 4K HDR</li>
-                        </ul>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function scrollToBottom() {
-        if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    window.copyLink = function(button) {
-        const input = button.parentElement.querySelector('input');
-        input.select();
-        document.execCommand('copy');
-        button.textContent = '已复制';
-        setTimeout(() => button.textContent = '复制', 2000);
-    };
-})();    
+// 初始化欢迎消息
+addBotMessage('欢迎使用网盘资源助手，请输入搜索关键词。');
+    
