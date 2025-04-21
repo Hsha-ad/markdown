@@ -27,6 +27,7 @@
         const keyword = chatInput.value.trim();
         if (!keyword) return;
 
+        addUserMessage(keyword);
         const typingElement = showTyping();
 
         fetch(`/api/search?q=${encodeURIComponent(keyword)}`)
@@ -49,7 +50,7 @@
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message user-message';
         messageDiv.innerHTML = `
-            <img src="https://via.placeholder.com/40/95EC69/FFFFFF?text=You" class="avatar">
+            <i class="fa-solid fa-user avatar"></i>
             <div class="message-content">
                 <div class="nickname">你</div>
                 <div class="bubble user-bubble">${text}</div>
@@ -63,7 +64,7 @@
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message bot-message';
         messageDiv.innerHTML = `
-            <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar">
+            <i class="fa-solid fa-robot avatar"></i>
             <div class="message-content">
                 <div class="nickname">网盘助手</div>
                 <div class="bubble bot-bubble">${html}</div>
@@ -77,7 +78,7 @@
         const typingDiv = document.createElement('div');
         typingDiv.className = 'message bot-message';
         typingDiv.innerHTML = `
-            <img src="https://via.placeholder.com/40/07C160/FFFFFF?text=Bot" class="avatar">
+            <i class="fa-solid fa-robot avatar"></i>
             <div class="message-content">
                 <div class="nickname">网盘助手</div>
                 <div class="bubble bot-bubble">
