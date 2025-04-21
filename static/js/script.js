@@ -25,7 +25,6 @@
     // 消息处理函数
     function handleSendMessage() {
         const keyword = chatInput.value.trim();
-        console.log('输入的关键词:', keyword);
         if (!keyword) return;
 
         addUserMessage(keyword);
