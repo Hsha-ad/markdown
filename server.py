@@ -4,7 +4,6 @@ from pan.routes import init_pan_routes
 import requests
 from bs4 import BeautifulSoup
 import logging
-import sys
 
 app = Flask(__name__, static_folder='static')
 
@@ -14,7 +13,7 @@ logging.basicConfig(level=logging.ERROR)
 # 初始化网盘路由
 init_pan_routes(app)
 
-# 静态文件路由
+# 静态文件路由（原功能不变）
 @app.route('/')
 def serve_index():
     try:
@@ -40,12 +39,7 @@ def api_search():
 
         # 在必应搜索
         bing_results = search_bing(keyword)
-        if not bing_results:
-            return jsonify({"error": "必应搜索未返回有效结果"}), 500
-
         movie_titles = extract_movie_titles(bing_results)
-        if not movie_titles:
-            return jsonify({"error": "未提取到电影标题"}), 500
 
         all_results = []
         from pan.crawlers.ysxjjkl import search_ysxjjkl
@@ -59,30 +53,30 @@ def api_search():
             "results": all_results
         })
     except Exception as e:
-        logging.error(f"Error in api_search: {e}", exc_info=True)
-        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+        logging.error(f"Error in api_search: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 def search_bing(keyword):
     url = f"https://www.bing.com/search?q={keyword}"
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
     try:
-        print(f"[Bing Search] 请求URL: {url}", file=sys.stderr)
         response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        print(f"[Bing Search] 响应状态码: {response.status_code}", file=sys.stderr)
         return response.text
     except Exception as e:
-        logging.error(f"Error in search_bing: {e}", exc_info=True)
+        logging.error(f"Error in search_bing: {e}")
         return ""
 
 def extract_movie_titles(html):
     soup = BeautifulSoup(html, 'html.parser')
     titles = []
-    # 这里简单假设标题在 <h2> 标签中，实际情况可能需要调整
+    import re
+    # 提取 <h2> 标签文本
     for h2 in soup.find_all('h2'):
-        titles.append(h2.get_text())
-    print(f"[提取标题] 提取到 {len(titles)} 个标题: {titles}", file=sys.stderr)
+        text = h2.get_text()
+        # 查找《》中间的文字
+        matches = re.findall(r'《(.*?)》', text)
+        titles.extend(matches)
     return titles
 
 if __name__ == '__main__':
