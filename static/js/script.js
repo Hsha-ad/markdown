@@ -1,10 +1,10 @@
 // 使用立即执行函数隔离作用域
-(function () {
+(function() {
     // 全局变量声明（只声明一次）
     let chatInput, sendButton, chatContainer;
 
     // DOM加载完成后初始化
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         // 获取DOM元素
         chatInput = document.getElementById('chat-input');
         sendButton = document.getElementById('send-button');
@@ -13,7 +13,7 @@
         // 事件监听（确保元素存在）
         if (sendButton && chatInput) {
             sendButton.addEventListener('click', handleSendMessage);
-            chatInput.addEventListener('keypress', function (e) {
+            chatInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') handleSendMessage();
             });
         }
@@ -26,9 +26,6 @@
     function handleSendMessage() {
         const keyword = chatInput.value.trim();
         if (!keyword) return;
-
-        addUserMessage(keyword);
-        chatInput.value = '';
 
         const typingElement = showTyping();
 
@@ -43,6 +40,8 @@
                 chatContainer.removeChild(typingElement);
                 addBotMessage(`<p style="color:red">请求失败: ${error.message}</p>`);
             });
+
+        chatInput.value = '';
     }
 
     // 其他工具函数（保持原有功能）
@@ -163,11 +162,11 @@
     }
 
     // 暴露全局函数（解决第三方脚本冲突）
-    window.copyLink = function (button) {
+    window.copyLink = function(button) {
         const input = button.parentElement.querySelector('input');
         input.select();
         document.execCommand('copy');
         button.textContent = '已复制';
         setTimeout(() => button.textContent = '复制', 2000);
     };
-})();    
+})();

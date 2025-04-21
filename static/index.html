@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/static/css/style.css">
     <title>网盘资源助手</title>
-    <script src="script.js"></script>
+    <script src="/static/js/script.js"></script>
 </head>
+
 <body>
     <div class="app-container">
-        <div class="chat-header">
+        <div class="header">
             <h1>网盘资源助手</h1>
+        </div>
+        <div class="search-container">
+            <input type="text" id="chat-input" placeholder="输入你想搜索的资源..." autocomplete="off">
+            <button id="send-button">搜索</button>
         </div>
         <div id="chat-container" class="chat-container">
             <div class="welcome-message">
@@ -19,10 +25,7 @@
                 <em>"我是传奇 电影"</em> 或 <em>"Python编程入门"</em>
             </div>
         </div>
-        <div class="input-container">
-            <input type="text" id="chat-input" placeholder="输入你想搜索的资源..." autocomplete="off">
-            <button id="send-button">发送</button>
-        </div>
     </div>
 </body>
-</html>    
+
+</html>
