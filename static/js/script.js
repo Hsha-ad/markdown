@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const chatContainer = document.getElementById('chat-container');
 
     sendButton.addEventListener('click', function () {
-        console.log('点击事件已触发');
         const keyword = chatInput.value.trim();
         if (keyword) {
             // 调用后端 API
@@ -17,20 +16,31 @@ document.addEventListener('DOMContentLoaded', function () {
                     return response.json();
                 })
               .then(data => {
-                    console.log('后端返回的数据:', data);
                     if (data.success) {
-                        // 显示搜索结果
-                        const results = data.results;
-                        results.forEach(result => {
-                            const message = document.createElement('div');
-                            message.classList.add('message', 'bot-message');
-                            message.innerHTML = `
-                                <div class="bubble bot-bubble">
-                                    ${result.title}: <a href="${result.url}" target="_blank">${result.url}</a>
+                        if (data.count === 0) {
+                            // 没有找到相关资源，显示提示消息
+                            const noResultMessage = document.createElement('div');
+                            noResultMessage.classList.add('message', 'bot-message');
+                            noResultMessage.innerHTML = `
+                                <div class="bubble bot-bubble" style="color:orange">
+                                    未找到与 "${keyword}" 相关的资源，请尝试其他关键词。
                                 </div>
                             `;
-                            chatContainer.appendChild(message);
-                        });
+                            chatContainer.appendChild(noResultMessage);
+                        } else {
+                            // 显示搜索结果
+                            const results = data.results;
+                            results.forEach(result => {
+                                const message = document.createElement('div');
+                                message.classList.add('message', 'bot-message');
+                                message.innerHTML = `
+                                    <div class="bubble bot-bubble">
+                                        ${result.title}: <a href="${result.url}" target="_blank">${result.url}</a>
+                                    </div>
+                                `;
+                                chatContainer.appendChild(message);
+                            });
+                        }
                     } else {
                         // 显示错误信息
                         const errorMessage = document.createElement('div');
