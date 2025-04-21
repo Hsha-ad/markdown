@@ -1,10 +1,10 @@
 :root {
-    --bg-color: #f4f4f9; /* 低饱和度背景色 */
-    --text-color: #333;
-    --primary-color: #64b5f6; /* 低饱和度主色调蓝色 */
-    --accent-color: #ffb74d; /* 亮色点缀橙色 */
-    --card-bg: #ffffff;
-    --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --bg-color: #121212; /* 深黑色背景色 */
+    --text-color: #FFFFFF; /* 白色文本颜色 */
+    --primary-color: #00BFFF; /* 亮蓝色主色调 */
+    --accent-color: #FFA500; /* 橙色辅助色调 */
+    --card-bg: #1E1E1E; /* 深灰色卡片背景色 */
+    --shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 body {
@@ -23,7 +23,7 @@ body {
     width: 90%;
     max-width: 600px;
     height: 90vh;
-    background: var(--card-bg);
+    background: var(--bg-color);
     border-radius: 16px;
     box-shadow: var(--shadow);
     display: flex;
@@ -31,8 +31,8 @@ body {
 }
 
 .header {
-    background: var(--primary-color);
-    color: white;
+    background: var(--bg-color);
+    color: var(--text-color);
     padding: 20px;
     text-align: center;
     border-top-left-radius: 16px;
@@ -48,23 +48,31 @@ body {
 #chat-input {
     flex: 1;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid #333;
     border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-color);
     outline: none;
+    transition: border-color 0.3s ease;
+}
+
+#chat-input:focus {
+    border-color: var(--primary-color);
 }
 
 #send-button {
     padding: 10px 20px;
     background: var(--accent-color);
-    color: white;
+    color: var(--text-color);
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: background 0.3s ease, transform 0.3s ease;
 }
 
 #send-button:hover {
-    background: #ffa726;
+    background: #FF8C00;
+    transform: scale(1.05);
 }
 
 .chat-container {
@@ -74,7 +82,7 @@ body {
 }
 
 .welcome-message {
-    background: #e0f7fa;
+    background: var(--card-bg);
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 20px;
@@ -85,20 +93,20 @@ body {
     margin-bottom: 15px;
     border-radius: 8px;
     padding: 10px;
-    display: inline-block; /* 使消息气泡宽度自适应内容 */
-    max-width: 80%; /* 最大宽度限制 */
+    display: inline-block;
+    max-width: 80%;
 }
 
 .user-message {
-    background: #e0f7fa;
+    background: var(--card-bg);
     margin-left: auto;
-    display: table; /* 使消息气泡宽度自适应内容 */
+    display: table;
 }
 
 .bot-message {
-    background: #f1f8e9;
+    background: var(--card-bg);
     margin-right: auto;
-    display: table; /* 使消息气泡宽度自适应内容 */
+    display: table;
 }
 
 .result-card {
@@ -109,7 +117,15 @@ body {
     padding: 15px;
     position: relative;
     overflow: hidden;
-    width: auto; /* 让卡片宽度自适应 */
+    width: auto;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.result-card.show {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .result-card-header {
@@ -127,13 +143,13 @@ body {
 
 .result-card-rating {
     font-size: 14px;
-    color: #888;
+    color: var(--primary-color);
 }
 
 .result-card-poster {
     width: 100px;
     height: 150px;
-    background: #ccc;
+    background: #333;
     margin-right: 15px;
     float: left;
 }
@@ -154,18 +170,18 @@ body {
 }
 
 .result-card-value {
-    color: #555;
+    color: var(--text-color);
 }
 
 .result-card-radar {
     margin-top: 10px;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid #333;
     padding-top: 10px;
 }
 
 .result-card-resource {
     margin-top: 10px;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid #333;
     padding-top: 10px;
 }
 
@@ -177,4 +193,4 @@ body {
 
 .result-card-resource li {
     margin-bottom: 5px;
-}    
+}

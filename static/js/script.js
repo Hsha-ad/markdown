@@ -28,6 +28,13 @@
            .then(data => {
                 chatContainer.removeChild(typingElement);
                 addBotMessage(processSearchResults(data));
+                // 添加资源卡片动画
+                const resultCards = document.querySelectorAll('.result-card');
+                resultCards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.classList.add('show');
+                    }, index * 200);
+                });
             })
            .catch(error => {
                 console.error('搜索失败:', error);
@@ -135,4 +142,4 @@
         button.textContent = '已复制';
         setTimeout(() => button.textContent = '复制', 2000);
     };
-})();    
+})();
