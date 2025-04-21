@@ -6,38 +6,41 @@ import re
 def crawl_douban_celebrity_movies(celebrity_id):
     url = f"https://movie.douban.com/celebrity/{celebrity_id}/movies?sortby=time"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"}
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
         movie_titles = []
-        movie_items = soup.select('div.article > div > div > a')
+        movie_items = soup.select('div.item')
         for item in movie_items:
-            title = item.get('title')
-            if title:
+            title_tag = item.select_one('span.title')
+            if title_tag:
+                title = title_tag.text.strip()
                 movie_titles.append(title)
         return movie_titles
     except requests.RequestException as e:
-        print(f"Error fetching data from Douban: {e}")
+        print(f"Error fetching Douban movies: {e}")
         return []
 
 
 def crawl_bing_movie_search(keyword):
     url = f"https://cn.bing.com/search?q={keyword}&form=ANNTH1"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"}
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
         movie_titles = []
-        pattern = re.compile(r'《(.*?)》')
-        matches = pattern.findall(response.text)
+        text_content = soup.get_text()
+        matches = re.findall(r'《(.*?)》', text_content)
         for match in matches:
             movie_titles.append(match)
         return movie_titles
     except requests.RequestException as e:
-        print(f"Error fetching data from Bing: {e}")
+        print(f"Error fetching Bing search results: {e}")
         return []
-
     
