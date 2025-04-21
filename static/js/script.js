@@ -48,7 +48,6 @@
 
     function addBotMessage(html) {
         const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message', 'bot-message');
         messageDiv.innerHTML = html;
         chatContainer.appendChild(messageDiv);
         scrollToBottom();

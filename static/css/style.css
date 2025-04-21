@@ -71,8 +71,6 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
-    display: flex;
-    flex-direction: column;
 }
 
 .welcome-message {
@@ -80,7 +78,7 @@ body {
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 20px;
-    align-self: center;
+    text-align: center;
 }
 
 .message {
@@ -92,12 +90,12 @@ body {
 
 .user-message {
     background: #e0f7fa;
-    align-self: flex-end;
+    margin-left: auto;
 }
 
 .bot-message {
     background: #f1f8e9;
-    align-self: flex-start;
+    margin-right: auto;
 }
 
 .result-card {
@@ -108,6 +106,7 @@ body {
     padding: 15px;
     position: relative;
     overflow: hidden;
+    width: auto; /* 让卡片宽度自适应 */
 }
 
 .result-card-header {
