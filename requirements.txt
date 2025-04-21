@@ -1,6 +1,6 @@
-# requirements.txt
 flask>=2.3.2
 beautifulsoup4>=4.12.0
 requests>=2.31.0
 concurrent-log-handler==0.9.24
 jieba
+flask-async
