@@ -1,33 +1,18 @@
-from flask import Blueprint, request, jsonify
-from pan.crawlers.ysxjjkl import search_ysxjjkl
-from data_source_crawlers import crawl_douban_celebrity_movies, crawl_bing_movie_search
+# pan/routes.py
+from flask import request, jsonify
+from .services import search_pan_resources
 
-pan_bp = Blueprint('pan', __name__)
-
-@pan_bp.route('/api/search', methods=['GET'])
-def search():
-    keyword = request.args.get('keyword')
-    if not keyword:
-        return jsonify({"error": "Keyword is required"}), 400
-
-    # 假设这里可以根据关键词解析出豆瓣影人ID，这里简单模拟
-    celebrity_id = None
-    if "周星驰" in keyword:
-        celebrity_id = "1048026"
-
-    movie_titles = []
-    if celebrity_id:
-        movie_titles = crawl_douban_celebrity_movies(celebrity_id)
-    if not movie_titles:
-        movie_titles = crawl_bing_movie_search(keyword)
-
-    all_results = []
-    for title in movie_titles:
-        try:
-            results = search_ysxjjkl(title)
-            all_results.extend(results)
-        except Exception as e:
-            print(f"Error searching pan resources for {title}: {e}")
-
-    return jsonify({"results": all_results})
-    
+def init_pan_routes(app):
+    """原封不动迁移您的API路由逻辑"""
+    @app.route('/api/search')
+    def api_search():
+        keyword = request.args.get('q', '').strip()
+        if not keyword:
+            return jsonify({"error": "关键词不能为空"}), 400
+        
+        results = search_pan_resources(keyword)['ysxjjkl']
+        return jsonify({
+            "success": True,
+            "count": len(results),
+            "results": results
+        })
