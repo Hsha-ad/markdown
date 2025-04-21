@@ -4,7 +4,6 @@ from data_source_crawlers import crawl_douban_celebrity_movies, crawl_bing_movie
 
 pan_bp = Blueprint('pan', __name__)
 
-
 @pan_bp.route('/api/search', methods=['GET'])
 def search():
     keyword = request.args.get('keyword')
@@ -24,8 +23,11 @@ def search():
 
     all_results = []
     for title in movie_titles:
-        results = search_ysxjjkl(title)
-        all_results.extend(results)
+        try:
+            results = search_ysxjjkl(title)
+            all_results.extend(results)
+        except Exception as e:
+            print(f"Error searching pan resources for {title}: {e}")
 
     return jsonify({"results": all_results})
     
