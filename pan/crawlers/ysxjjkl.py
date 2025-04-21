@@ -4,7 +4,12 @@ from bs4 import BeautifulSoup
 import re
 import sys
 from urllib.parse import quote
+from difflib import SequenceMatcher
 from core.utils import check_valid
+
+def is_similar(a, b, threshold=0.6):
+    """判断两个字符串是否相似"""
+    return SequenceMatcher(None, a, b).ratio() >= threshold
 
 def search_ysxjjkl(keyword):
     try:
@@ -42,17 +47,19 @@ def search_ysxjjkl(keyword):
                 if pwd_match:
                     pwd = pwd_match.group(1)
 
-                result = {
-                    'title': title[:100],
-                    'url': link['href'],
-                    'source': '影视集结号',
-                    'valid': bool(pwd)
-                }
+                # 模糊匹配判断
+                if is_similar(title.lower(), keyword.lower()):
+                    result = {
+                        'title': title[:100],
+                        'url': link['href'],
+                        'source': '影视集结号',
+                        'valid': bool(pwd)
+                    }
 
-                if pwd and 'pwd=' not in result['url']:
-                    result['url'] += f"?pwd={pwd}" if '?' not in result['url'] else f"&pwd={pwd}"
+                    if pwd and 'pwd=' not in result['url']:
+                        result['url'] += f"?pwd={pwd}" if '?' not in result['url'] else f"&pwd={pwd}"
 
-                results.append(result)
+                    results.append(result)
 
             except Exception as e:
                 print(f"[解析异常] {str(e)}", file=sys.stderr)
@@ -61,12 +68,14 @@ def search_ysxjjkl(keyword):
         if not results:
             print("[警告] 主解析方案无结果，尝试备用方案", file=sys.stderr)
             for a in soup.find_all('a', href=re.compile(r'pan\.baidu\.com/s/[^\s]+')):
-                results.append({
-                    'title': a.get_text(strip=True) or "百度网盘资源",
-                    'url': a['href'],
-                    'source': 'ysxjjkl',
-                    'valid': 'pwd=' in a['href']
-                })
+                title = a.get_text(strip=True) or "百度网盘资源"
+                if is_similar(title.lower(), keyword.lower()):
+                    results.append({
+                        'title': title,
+                        'url': a['href'],
+                        'source': 'ysxjjkl',
+                        'valid': 'pwd=' in a['href']
+                    })
 
         print(f"[有效结果] 找到 {len(results)} 条资源", file=sys.stderr)
         return results
