@@ -1,59 +1,57 @@
-# server.py
-from flask import Flask, send_from_directory, request, jsonify
+from flask import Flask, request, jsonify
 from pan.routes import init_pan_routes
-import requests
+import asyncio
+import aiohttp
 from bs4 import BeautifulSoup
+from flask_cors import CORS
 
-app = Flask(__name__, static_folder='static')
-
-# 初始化网盘路由
+app = Flask(__name__)
+CORS(app)
 init_pan_routes(app)
 
-# 静态文件路由（原功能不变）
-@app.route('/')
-def serve_index():
-    return send_from_directory('static', 'index.html')
+# 异步 Bing 搜索
+async def async_search_bing(keyword):
+    timeout = aiohttp.ClientTimeout(total=5)  # 5 秒超时
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        try:
+            async with session.get(
+                f"https://www.bing.com/search?q={keyword}",
+                headers={'User-Agent': 'Mozilla/5.0'}
+            ) as response:
+                return await response.text()
+        except Exception as e:
+            print(f"Bing 搜索错误: {e}")
+            return ""
 
-@app.route('/<path:path>')
-def serve_static(path):
-    return send_from_directory('static', path)
+# 提取标题（简化示例）
+def extract_movie_titles(html):
+    return [tag.text.strip() for tag in BeautifulSoup(html, 'lxml').find_all('h2')[:5]]  # 取前5条
 
+# 异步 API 接口
 @app.route('/api/search')
-def api_search():
+async def api_search():
     keyword = request.args.get('q', '').strip()
     if not keyword:
         return jsonify({"error": "关键词不能为空"}), 400
 
-    # 在必应搜索
-    bing_results = search_bing(keyword)
-    movie_titles = extract_movie_titles(bing_results)
-
-    all_results = []
-    from pan.crawlers.ysxjjkl import search_ysxjjkl
-    for title in movie_titles:
-        results = search_ysxjjkl(title)
-        all_results.extend(results)
-
+    # 执行异步搜索
+    bing_html = await async_search_bing(keyword)
+    titles = extract_movie_titles(bing_html)
+    
+    # 模拟异步爬虫（需根据实际爬虫修改）
+    async def mock_crawler(title):
+        await asyncio.sleep(1)  # 模拟延迟
+        return [f"{title} - 网盘链接: https://example.com/{title}"]
+    
+    # 并发处理多个标题
+    results = await asyncio.gather(*[mock_crawler(title) for title in titles])
+    all_results = [item for sublist in results for item in sublist]
+    
     return jsonify({
         "success": True,
         "count": len(all_results),
-        "results": all_results
+        "results": all_results[:10]  # 限制结果数量，避免超时
     })
 
-def search_bing(keyword):
-    url = f"https://www.bing.com/search?q={keyword}"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
-    response = requests.get(url, headers=headers)
-    return response.text
-
-def extract_movie_titles(html):
-    soup = BeautifulSoup(html, 'html.parser')
-    titles = []
-    # 这里简单假设标题在 <h2> 标签中，实际情况可能需要调整
-    for h2 in soup.find_all('h2'):
-        titles.append(h2.get_text())
-    return titles
-
 if __name__ == '__main__':
-    app.run(port=5000)
+    asyncio.run(app.run(port=5000))
