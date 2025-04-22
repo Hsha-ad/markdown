@@ -1,10 +1,10 @@
 :root {
-    --bg-color: #121212; /* 暗黑背景色 */
-    --text-color: #e0e0e0;
-    --primary-color: #1e88e5; /* 主色调蓝色 */
-    --accent-color: #ffc107; /* 亮色点缀黄色 */
-    --card-bg: #212121;
-    --shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    --bg-color: #f4f4f9; /* 低饱和度背景色 */
+    --text-color: #333;
+    --primary-color: #64b5f6; /* 低饱和度主色调蓝色 */
+    --accent-color: #ffb74d; /* 亮色点缀橙色 */
+    --card-bg: #ffffff;
+    --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 body {
@@ -48,11 +48,9 @@ body {
 #chat-input {
     flex: 1;
     padding: 10px;
-    border: 1px solid #333;
+    border: 1px solid #ddd;
     border-radius: 8px;
     outline: none;
-    background: #333;
-    color: var(--text-color);
 }
 
 #send-button {
@@ -66,15 +64,41 @@ body {
 }
 
 #send-button:hover {
-    background: #ffa000;
+    background: #ffa726;
 }
 
-.result-container {
+.chat-container {
     flex: 1;
-    overflow-x: hidden;
-    overflow-y: hidden;
+    overflow-y: auto;
     padding: 20px;
-    position: relative;
+}
+
+.welcome-message {
+    background: #e0f7fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.message {
+    margin-bottom: 15px;
+    border-radius: 8px;
+    padding: 10px;
+    display: inline-block; /* 使消息气泡宽度自适应内容 */
+    max-width: 80%; /* 最大宽度限制 */
+}
+
+.user-message {
+    background: #e0f7fa;
+    margin-left: auto;
+    display: table; /* 使消息气泡宽度自适应内容 */
+}
+
+.bot-message {
+    background: #f1f8e9;
+    margin-right: auto;
+    display: table; /* 使消息气泡宽度自适应内容 */
 }
 
 .result-card {
@@ -83,18 +107,9 @@ body {
     box-shadow: var(--shadow);
     margin: 10px 0;
     padding: 15px;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    opacity: 0;
-    transform: translateX(100%);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.result-card.active {
-    opacity: 1;
-    transform: translateX(0);
+    position: relative;
+    overflow: hidden;
+    width: auto; /* 让卡片宽度自适应 */
 }
 
 .result-card-header {
@@ -144,13 +159,13 @@ body {
 
 .result-card-radar {
     margin-top: 10px;
-    border-top: 1px solid #333;
+    border-top: 1px solid #ddd;
     padding-top: 10px;
 }
 
 .result-card-resource {
     margin-top: 10px;
-    border-top: 1px solid #333;
+    border-top: 1px solid #ddd;
     padding-top: 10px;
 }
 
@@ -162,26 +177,4 @@ body {
 
 .result-card-resource li {
     margin-bottom: 5px;
-}
-
-.pagination {
-    display: flex;
-    justify-content: center;
-    padding: 10px;
-}
-
-.pagination button {
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    margin: 0 5px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
-
-.pagination button:hover {
-    background: #ffa000;
-}
+}    
